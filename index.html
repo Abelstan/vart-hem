@@ -1,0 +1,1044 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+  <meta name="theme-color" content="#0f3460"/>
+  <meta name="apple-mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+  <meta name="apple-mobile-web-app-title" content="Vårt Hem"/>
+  <title>Vårt Hem</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; background: #1a1a2e; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      -webkit-tap-highlight-color: transparent;
+      overscroll-behavior: none;
+    }
+    input, button { font-family: inherit; }
+    button { cursor: pointer; border: none; background: none; }
+    input:focus { outline: none; }
+    ::-webkit-scrollbar { display: none; }
+
+    #app {
+      min-height: 100dvh;
+      background: linear-gradient(135deg,#1a1a2e 0%,#16213e 50%,#0f3460 100%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding-top: max(28px, env(safe-area-inset-top));
+      padding-bottom: max(20px, env(safe-area-inset-bottom));
+      padding-left: max(12px, env(safe-area-inset-left));
+      padding-right: max(12px, env(safe-area-inset-right));
+    }
+
+    /* ── Setup banner ── */
+    #setup-banner {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      background: #FF8C00;
+      color: #fff;
+      text-align: center;
+      padding: 10px 16px;
+      font-size: 13px;
+      font-weight: 600;
+      z-index: 999;
+      padding-top: max(10px, env(safe-area-inset-top));
+    }
+
+    .screen { width: 100%; display: flex; flex-direction: column; align-items: center; }
+    .hidden { display: none !important; }
+
+    /* ── Join screen ── */
+    #join-screen {
+      justify-content: center;
+      min-height: 100dvh;
+      padding: 24px;
+    }
+    .join-icon { font-size: 56px; line-height: 1; margin-bottom: 12px; text-align: center; }
+    .join-title { font-size: 32px; color: #fff; font-weight: 700; text-align: center; margin-bottom: 6px; }
+    .join-sub { color: rgba(255,255,255,0.45); font-size: 14px; font-style: italic; text-align: center; margin-bottom: 36px; }
+    .join-card {
+      background: rgba(255,255,255,0.07);
+      border-radius: 24px;
+      padding: 28px;
+      width: 100%;
+      max-width: 400px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+    }
+    .join-card h2 { color: #fff; font-size: 18px; margin-bottom: 8px; font-weight: 600; }
+    .join-card p { color: rgba(255,255,255,0.45); font-size: 13px; line-height: 1.5; margin-bottom: 20px; }
+    .join-card p strong { color: rgba(255,255,255,0.8); }
+    .text-input {
+      width: 100%;
+      padding: 14px 16px;
+      border-radius: 14px;
+      border: 2px solid rgba(255,255,255,0.15);
+      background: rgba(255,255,255,0.08);
+      color: #fff;
+      font-size: 16px;
+      margin-bottom: 8px;
+      -webkit-appearance: none;
+    }
+    .text-input::placeholder { color: rgba(255,255,255,0.3); }
+    .error-msg { color: #ff7070; font-size: 12px; margin-bottom: 10px; min-height: 18px; }
+    .btn-primary {
+      width: 100%;
+      padding: 15px;
+      background: linear-gradient(135deg,#3B82F6,#6366f1);
+      color: #fff;
+      border-radius: 14px;
+      font-size: 16px;
+      font-weight: 700;
+      min-height: 52px;
+      touch-action: manipulation;
+      -webkit-appearance: none;
+      transition: opacity 0.2s;
+      margin-bottom: 16px;
+    }
+    .btn-primary:disabled { background: rgba(255,255,255,0.1); cursor: default; }
+    .hint-box {
+      background: rgba(255,255,255,0.05);
+      border-radius: 12px;
+      padding: 12px 14px;
+      font-size: 12px;
+      color: rgba(255,255,255,0.5);
+      line-height: 1.6;
+    }
+    .hint-box strong { color: rgba(255,255,255,0.7); }
+
+    /* ── Main app ── */
+    #main-screen { padding-bottom: 16px; }
+
+    .app-header { text-align: center; margin-bottom: 16px; }
+    .app-header .icon { font-size: 36px; line-height: 1; margin-bottom: 4px; }
+    .app-header h1 { font-size: 26px; font-weight: 700; color: #fff; }
+    .app-header .sub { color: rgba(255,255,255,0.45); font-size: 12px; font-style: italic; margin-top: 4px; }
+
+    .room-bar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    .room-badge {
+      background: rgba(255,255,255,0.08);
+      border-radius: 20px;
+      padding: 6px 14px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      color: rgba(255,255,255,0.85);
+    }
+    .sync-badge {
+      border-radius: 20px;
+      padding: 6px 12px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 11px;
+      transition: all 0.3s;
+    }
+    .sync-badge.idle   { background: rgba(46,139,87,0.15); border: 1px solid rgba(46,139,87,0.4); color: #6ee7b7; }
+    .sync-badge.saving { background: rgba(59,130,246,0.2);  border: 1px solid rgba(59,130,246,0.4); color: #93c5fd; }
+    .sync-badge.saved  { background: rgba(46,139,87,0.3);   border: 1px solid rgba(46,139,87,0.4); color: #6ee7b7; }
+    .leave-btn {
+      background: rgba(255,255,255,0.06);
+      border-radius: 20px;
+      padding: 6px 14px;
+      color: rgba(255,255,255,0.45);
+      font-size: 12px;
+      touch-action: manipulation;
+      min-height: 34px;
+    }
+
+    .tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 16px;
+      background: rgba(255,255,255,0.06);
+      border-radius: 16px;
+      padding: 5px;
+      width: 100%;
+      max-width: 500px;
+    }
+    .tab {
+      border-radius: 12px;
+      padding: 9px 13px;
+      font-size: 12px;
+      font-weight: 400;
+      color: rgba(255,255,255,0.55);
+      background: transparent;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      white-space: nowrap;
+      flex: 1;
+      justify-content: center;
+      touch-action: manipulation;
+      min-height: 40px;
+    }
+    .tab.active { font-weight: 700; color: #fff; }
+
+    .card {
+      width: 100%;
+      max-width: 500px;
+      border-radius: 24px;
+      padding: 20px 18px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+    }
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+    .card-title { font-size: 21px; font-weight: 700; color: #1a1a1a; }
+    .card-sub { font-size: 12px; color: #888; margin-top: 2px; }
+    .status-pill {
+      border-radius: 20px;
+      padding: 5px 12px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .bills-banner {
+      border-radius: 16px;
+      padding: 14px 16px;
+      margin-bottom: 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: linear-gradient(135deg,#FF8C00,#FF6000);
+      box-shadow: 0 4px 16px rgba(255,140,0,0.3);
+    }
+    .bills-banner .label { color: rgba(255,255,255,0.75); font-size: 10px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; }
+    .bills-banner .big { color: #fff; font-size: 26px; font-weight: 700; }
+    .bills-banner .med { color: #fff; font-size: 18px; font-weight: 700; }
+    .bills-banner .small { color: rgba(255,255,255,0.6); font-size: 11px; }
+
+    .progress-bar { height: 4px; border-radius: 4px; margin-bottom: 16px; overflow: hidden; }
+    .progress-fill { height: 100%; border-radius: 4px; transition: width 0.4s ease; }
+
+    .items-list { display: flex; flex-direction: column; gap: 8px; }
+    .item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 13px 14px;
+      border-radius: 14px;
+      border: 1.5px solid #f0f0f0;
+      background: #fff;
+      transition: all 0.2s;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+      min-height: 52px;
+    }
+    .item.done { border-color: transparent; box-shadow: none; }
+    .checkbox {
+      width: 28px;
+      height: 28px;
+      border-radius: 8px;
+      border: 2px solid #ccc;
+      background: transparent;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      font-size: 14px;
+      color: #fff;
+      transition: all 0.2s;
+      touch-action: manipulation;
+    }
+    .item-text {
+      flex: 1;
+      font-size: 15px;
+      color: #222;
+      word-break: break-word;
+    }
+    .item.done .item-text { color: #aaa; text-decoration: line-through; }
+    .item-amount { font-size: 13px; font-weight: 600; margin-right: 4px; white-space: nowrap; }
+    .remove-btn {
+      color: #ccc;
+      font-size: 20px;
+      padding: 0 4px;
+      line-height: 1;
+      touch-action: manipulation;
+      min-width: 32px;
+      min-height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .empty-msg { text-align: center; padding: 28px 0; color: #bbb; font-size: 14px; }
+
+    .add-form { display: flex; flex-direction: column; gap: 8px; margin-top: 12px; }
+    .add-row { display: flex; gap: 8px; }
+    .add-input {
+      flex: 1;
+      padding: 12px 14px;
+      border-radius: 12px;
+      border: 2px solid #ccc;
+      font-size: 15px;
+      -webkit-appearance: none;
+      min-height: 48px;
+      background: #fff;
+    }
+    .add-amount {
+      width: 90px;
+      padding: 12px 10px;
+      border-radius: 12px;
+      border: 2px solid #ccc;
+      font-size: 15px;
+      -webkit-appearance: none;
+      min-height: 48px;
+      background: #fff;
+    }
+    .add-btn {
+      padding: 13px 18px;
+      color: #fff;
+      border-radius: 12px;
+      font-size: 15px;
+      font-weight: 700;
+      touch-action: manipulation;
+      min-height: 50px;
+      -webkit-appearance: none;
+    }
+    .add-trigger {
+      width: 100%;
+      margin-top: 12px;
+      padding: 13px;
+      background: transparent;
+      border-radius: 14px;
+      font-size: 15px;
+      font-weight: 700;
+      touch-action: manipulation;
+      min-height: 50px;
+      -webkit-appearance: none;
+    }
+
+    .footer-note {
+      color: rgba(255,255,255,0.18);
+      font-size: 11px;
+      margin-top: 18px;
+      font-style: italic;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+
+<!-- Setup banner (shown when API key not configured) -->
+<div id="setup-banner">
+  ⚙️ Lägg till din JSONBin API-nyckel i filen för att aktivera synkronisering
+</div>
+
+<div id="app">
+
+  <!-- ── JOIN SCREEN ──────────────────────────────────────────── -->
+  <div id="join-screen" class="screen">
+    <div class="join-icon">🏠</div>
+    <div class="join-title">Vårt Hem</div>
+    <div class="join-sub">delat med kärlek ♥</div>
+
+    <div class="join-card">
+      <h2>Ange din rumskod</h2>
+      <p>Du och din fru använder <strong>samma kod</strong> för att dela data i realtid.</p>
+
+      <input id="room-input" class="text-input" type="text"
+        placeholder="t.ex. vårt-hem-2024"
+        autocapitalize="none" autocorrect="off" autocomplete="off"/>
+      <div id="join-error" class="error-msg"></div>
+
+      <button id="join-btn" class="btn-primary">Gå med i rummet →</button>
+
+      <div class="hint-box">
+        💡 <strong>Så här fungerar det:</strong> Välj valfri kod. Dela den med din fru.
+        Alla ändringar synkroniseras automatiskt var 4:e sekund via JSONBin.
+      </div>
+    </div>
+  </div>
+
+  <!-- ── MAIN SCREEN ─────────────────────────────────────────── -->
+  <div id="main-screen" class="screen hidden">
+
+    <div class="app-header">
+      <div class="icon">🏠</div>
+      <h1>Vårt Hem</h1>
+      <div class="sub">delat med kärlek ♥</div>
+    </div>
+
+    <div class="room-bar">
+      <div class="room-badge">🔗 <span id="room-label"></span></div>
+      <div id="sync-badge" class="sync-badge idle">✓ <span id="sync-text">Realtid</span></div>
+      <button class="leave-btn" onclick="leaveRoom()">Lämna</button>
+    </div>
+
+    <div class="tabs" id="tabs-container"></div>
+
+    <div class="card" id="main-card">
+      <div class="card-header">
+        <div>
+          <div class="card-title" id="section-title"></div>
+          <div class="card-sub" id="section-sub"></div>
+        </div>
+        <div class="status-pill" id="status-pill"></div>
+      </div>
+
+      <div id="bills-banner" class="bills-banner hidden">
+        <div>
+          <div class="label">Månadskostnad</div>
+          <div class="big" id="total-amount"></div>
+        </div>
+        <div style="text-align:right">
+          <div class="label">Betalt</div>
+          <div class="med" id="paid-amount"></div>
+          <div class="small" id="remaining-amount"></div>
+        </div>
+      </div>
+
+      <div class="progress-bar" id="progress-bar">
+        <div class="progress-fill" id="progress-fill"></div>
+      </div>
+
+      <div class="items-list" id="items-list"></div>
+
+      <div id="add-area"></div>
+    </div>
+
+    <div class="footer-note" id="footer-note"></div>
+  </div>
+
+</div>
+
+<script>
+// ══════════════════════════════════════════════════════════════════════════════
+//  🔴 PASTE YOUR JSONBIN DETAILS HERE (see instructions below the app)
+// ══════════════════════════════════════════════════════════════════════════════
+const JSONBIN_API_KEY  = "$2a$10$y3xO.n927i8MaSlkLuXoT.trjFOgEkinsshzWSqxFU.qJk6Owe88C";
+const JSONBIN_BIN_ID   = "69986af8ae596e708f3a44d2";
+// ══════════════════════════════════════════════════════════════════════════════
+
+const SECTIONS = ["Räkningar","Inköpslista","Att-göra","Anteckningar","Budget"];
+const ICONS    = { "Räkningar":"💳","Inköpslista":"🛒","Att-göra":"✅","Anteckningar":"📝","Budget":"📊" };
+const SHORT    = { "Räkningar":"Räkn.","Inköpslista":"Inköp","Att-göra":"Att-göra","Anteckningar":"Notat","Budget":"Budget" };
+const COLORS   = {
+  "Räkningar":    { bg:"#FFF4E6", accent:"#FF8C00", light:"#FFE0B2" },
+  "Inköpslista":  { bg:"#F0FFF4", accent:"#2E8B57", light:"#C8F5D8" },
+  "Att-göra":     { bg:"#EFF6FF", accent:"#3B82F6", light:"#BFDBFE" },
+  "Anteckningar": { bg:"#FDF4FF", accent:"#9333EA", light:"#E9D5FF" },
+  "Budget":       { bg:"#F0F4FF", accent:"#1D4ED8", light:"#C7D7FF" },
+};
+const MONTHS = ["Jan","Feb","Mar","Apr","Maj","Jun","Jul","Aug","Sep","Okt","Nov","Dec"];
+const START_YEAR = 2026;
+function getYears() {
+  const current = new Date().getFullYear();
+  const years = [];
+  for (let y = START_YEAR; y <= Math.max(current, START_YEAR) + 2; y++) years.push(y);
+  return years;
+}
+function emptyYear() { return {Jan:0,Feb:0,Mar:0,Apr:0,Maj:0,Jun:0,Jul:0,Aug:0,Sep:0,Okt:0,Nov:0,Dec:0}; }
+const DEFAULT_DATA = {
+  "Räkningar":    [{ id:1,text:"El",amount:1200,done:false },{ id:2,text:"Internet",amount:399,done:true },{ id:3,text:"Hyra",amount:8500,done:false }],
+  "Inköpslista":  [{ id:1,text:"Ägg",done:false },{ id:2,text:"Bröd",done:true },{ id:3,text:"Mjölk",done:false },{ id:4,text:"Tomater",done:false }],
+  "Att-göra":     [{ id:1,text:"Fixa den läckande kranen",done:false },{ id:2,text:"Ring rörmokaren",done:false },{ id:3,text:"Dammsug vardagsrummet",done:true }],
+  "Anteckningar": [{ id:1,text:"Middagsreservation fredag 19:00 🍽️",done:false },{ id:2,text:"Kolla garantin på diskmaskinen",done:false }],
+  "Budget":       { "2026": emptyYear() },
+};
+
+// ── State ─────────────────────────────────────────────────────────────────────
+let state = {
+  room: null,
+  data: JSON.parse(JSON.stringify(DEFAULT_DATA)),
+  active: "Räkningar",
+  adding: false,
+  selectedYear: new Date().getFullYear() < 2026 ? 2026 : new Date().getFullYear(),
+};
+let pollInterval = null;
+let lastSavedJSON = "";
+let isConfigured = JSONBIN_API_KEY !== "PASTE_YOUR_API_KEY_HERE" && JSONBIN_BIN_ID !== "PASTE_YOUR_BIN_ID_HERE";
+
+// ── JSONBin helpers ───────────────────────────────────────────────────────────
+async function jsonbinGet() {
+  if (!isConfigured) return null;
+  try {
+    const res = await fetch(`https://api.jsonbin.io/v3/b/${JSONBIN_BIN_ID}/latest`, {
+      headers: { "X-Master-Key": JSONBIN_API_KEY, "X-Bin-Meta": "false" }
+    });
+    if (!res.ok) return null;
+    return await res.json();
+  } catch { return null; }
+}
+
+async function jsonbinSet(data) {
+  if (!isConfigured) return;
+  try {
+    await fetch(`https://api.jsonbin.io/v3/b/${JSONBIN_BIN_ID}`, {
+      method: "PUT",
+      headers: { "Content-Type":"application/json","X-Master-Key": JSONBIN_API_KEY },
+      body: JSON.stringify(data),
+    });
+  } catch {}
+}
+
+// ── Sync helpers ──────────────────────────────────────────────────────────────
+function setSyncStatus(status) {
+  const badge = document.getElementById("sync-badge");
+  const text  = document.getElementById("sync-text");
+  badge.className = "sync-badge " + status;
+  if (status === "saving") { badge.querySelector("span:first-child").textContent = "⏳"; text.textContent = "Sparar…"; }
+  if (status === "saved")  { badge.querySelector("span:first-child").textContent = "✓";  text.textContent = "Sparat!"; setTimeout(() => setSyncStatus("idle"), 2000); }
+  if (status === "idle")   { badge.querySelector("span:first-child").textContent = "✓";  text.textContent = isConfigured ? "Realtid" : "Lokalt"; }
+}
+
+async function saveData() {
+  const json = JSON.stringify(state.data);
+  if (json === lastSavedJSON) return;
+  lastSavedJSON = json;
+  setSyncStatus("saving");
+  const payload = { rooms: {} };
+  // load current bin, merge our room, save back
+  const current = await jsonbinGet();
+  const rooms = (current && current.rooms) ? current.rooms : {};
+  rooms[state.room] = state.data;
+  await jsonbinSet({ rooms });
+  setSyncStatus("saved");
+}
+
+async function pollRemote() {
+  if (!isConfigured || !state.room) return;
+  const current = await jsonbinGet();
+  if (!current || !current.rooms || !current.rooms[state.room]) return;
+  const remoteJSON = JSON.stringify(current.rooms[state.room]);
+  if (remoteJSON !== lastSavedJSON) {
+    lastSavedJSON = remoteJSON;
+    state.data = current.rooms[state.room];
+    renderItems();
+  }
+}
+
+// ── Join ──────────────────────────────────────────────────────────────────────
+document.getElementById("join-btn").addEventListener("click", joinRoom);
+document.getElementById("room-input").addEventListener("keydown", e => { if (e.key==="Enter") joinRoom(); });
+
+async function joinRoom() {
+  const code = document.getElementById("room-input").value.trim().toLowerCase().replace(/\s+/g,"-");
+  if (!code) { document.getElementById("join-error").textContent = "Ange en rumskod."; return; }
+
+  const btn = document.getElementById("join-btn");
+  btn.textContent = "Ansluter…"; btn.disabled = true;
+
+  state.room = code;
+  try { localStorage.setItem("vart-hem-room", code); } catch {}
+
+  if (isConfigured) {
+    const current = await jsonbinGet();
+    if (current && current.rooms && current.rooms[code]) {
+      state.data = current.rooms[code];
+      lastSavedJSON = JSON.stringify(state.data);
+    } else {
+      // New room — seed with defaults
+      await saveData();
+    }
+    // Start polling
+    pollInterval = setInterval(pollRemote, 60000);
+  } else {
+    document.getElementById("setup-banner").style.display = "block";
+    document.getElementById("app").style.marginTop = "44px";
+  }
+
+  btn.textContent = "Gå med i rummet →"; btn.disabled = false;
+
+  document.getElementById("join-screen").classList.add("hidden");
+  document.getElementById("main-screen").classList.remove("hidden");
+  document.getElementById("room-label").textContent = code;
+  document.getElementById("footer-note").textContent =
+    isConfigured ? `Synkar var minut ✦ rum: ${code}` : `Lokalt läge – konfigurera JSONBin för synk ✦ rum: ${code}`;
+
+  buildTabs();
+  setActiveSection("Räkningar");
+}
+
+function leaveRoom() {
+  clearInterval(pollInterval);
+  try { localStorage.removeItem("vart-hem-room"); } catch {}
+  state.room = null;
+  state.data = JSON.parse(JSON.stringify(DEFAULT_DATA));
+  state.active = "Räkningar";
+  document.getElementById("main-screen").classList.add("hidden");
+  document.getElementById("join-screen").classList.remove("hidden");
+  document.getElementById("room-input").value = "";
+  document.getElementById("join-error").textContent = "";
+}
+
+// ── Tabs ──────────────────────────────────────────────────────────────────────
+function buildTabs() {
+  const container = document.getElementById("tabs-container");
+  container.innerHTML = "";
+  SECTIONS.forEach(sec => {
+    const btn = document.createElement("button");
+    btn.className = "tab" + (sec === state.active ? " active" : "");
+    btn.id = "tab-" + sec;
+    btn.innerHTML = `<span>${ICONS[sec]}</span><span>${SHORT[sec]}</span>`;
+    btn.style.background = sec === state.active ? COLORS[sec].accent : "transparent";
+    btn.addEventListener("click", () => setActiveSection(sec));
+    container.appendChild(btn);
+  });
+}
+
+function setActiveSection(sec) {
+  const oldTab = document.getElementById("tab-" + state.active);
+  if (oldTab) { oldTab.classList.remove("active"); oldTab.style.background = "transparent"; oldTab.style.color = "rgba(255,255,255,0.55)"; oldTab.style.fontWeight = "400"; }
+
+  state.active = sec;
+  state.adding = false;
+
+  const newTab = document.getElementById("tab-" + sec);
+  if (newTab) { newTab.classList.add("active"); newTab.style.background = COLORS[sec].accent; newTab.style.color = "#fff"; newTab.style.fontWeight = "700"; }
+
+  const col = COLORS[sec];
+  const card = document.getElementById("main-card");
+  card.style.background = col.bg;
+  card.style.boxShadow = `0 20px 60px rgba(0,0,0,0.4), 0 0 0 1px ${col.light}`;
+
+  if (sec === "Budget") renderBudget();
+  else renderItems();
+}
+
+// ── Budget ────────────────────────────────────────────────────────────────────
+function renderBudget() {
+  const col = COLORS["Budget"];
+  const year = state.selectedYear;
+  const yearStr = String(year);
+
+  // Ensure budget structure exists for this year
+  if (!state.data["Budget"]) state.data["Budget"] = {};
+  if (!state.data["Budget"][yearStr]) state.data["Budget"][yearStr] = emptyYear();
+  const budget = state.data["Budget"][yearStr];
+
+  document.getElementById("section-title").textContent = "📊 Budget";
+  document.getElementById("section-sub").textContent = "Årsöversikt " + yearStr;
+  document.getElementById("status-pill").style.background = col.light;
+  document.getElementById("status-pill").style.color = col.accent;
+  document.getElementById("bills-banner").classList.add("hidden");
+  document.getElementById("progress-bar").style.marginBottom = "0";
+  document.getElementById("progress-fill").style.width = "0%";
+  document.getElementById("add-area").innerHTML = "";
+
+  const total = MONTHS.reduce((s,m) => s+(budget[m]||0), 0);
+  const avg   = Math.round(total / 12);
+  const maxVal = Math.max(...MONTHS.map(m => budget[m]||0), 1);
+
+  document.getElementById("status-pill").textContent = total > 0 ? total.toLocaleString("sv-SE")+" kr/år" : "Tom";
+
+  const list = document.getElementById("items-list");
+  list.innerHTML = "";
+
+  // ── Year selector ──
+  const yearNav = document.createElement("div");
+  yearNav.style.cssText = "display:flex;align-items:center;justify-content:center;gap:12px;margin-bottom:14px;";
+
+  const prevBtn = document.createElement("button");
+  prevBtn.textContent = "‹";
+  prevBtn.style.cssText = "width:36px;height:36px;border-radius:50%;background:rgba(29,78,216,0.1);color:#1D4ED8;font-size:20px;font-weight:700;display:flex;align-items:center;justify-content:center;touch-action:manipulation;border:none;cursor:pointer;";
+  prevBtn.onclick = () => { state.selectedYear = Math.max(START_YEAR, state.selectedYear - 1); renderBudget(); };
+
+  const yearLbl = document.createElement("span");
+  yearLbl.style.cssText = "font-size:20px;font-weight:700;color:#1D4ED8;min-width:60px;text-align:center;";
+  yearLbl.textContent = yearStr;
+
+  const nextBtn = document.createElement("button");
+  nextBtn.textContent = "›";
+  nextBtn.style.cssText = "width:36px;height:36px;border-radius:50%;background:rgba(29,78,216,0.1);color:#1D4ED8;font-size:20px;font-weight:700;display:flex;align-items:center;justify-content:center;touch-action:manipulation;border:none;cursor:pointer;";
+  nextBtn.onclick = () => { state.selectedYear = state.selectedYear + 1; renderBudget(); };
+
+  yearNav.appendChild(prevBtn);
+  yearNav.appendChild(yearLbl);
+  yearNav.appendChild(nextBtn);
+  list.appendChild(yearNav);
+
+  // ── Yearly overview bar (compare years) ──
+  const years = getYears();
+  const hasAnyData = years.some(y => {
+    const yd = state.data["Budget"] && state.data["Budget"][String(y)];
+    return yd && MONTHS.some(m => (yd[m]||0) > 0);
+  });
+
+  if (hasAnyData && years.length > 1) {
+    const overviewDiv = document.createElement("div");
+    overviewDiv.style.cssText = "background:#fff;border-radius:16px;padding:14px 12px 10px;margin-bottom:14px;";
+
+    const overviewTitle = document.createElement("div");
+    overviewTitle.style.cssText = "font-size:11px;font-weight:700;color:#999;letter-spacing:1px;text-transform:uppercase;margin-bottom:10px;text-align:center;";
+    overviewTitle.textContent = "Jämförelse per år";
+    overviewDiv.appendChild(overviewTitle);
+
+    const yearTotals = years.map(y => {
+      const yd = state.data["Budget"] && state.data["Budget"][String(y)];
+      return yd ? MONTHS.reduce((s,m) => s+(yd[m]||0), 0) : 0;
+    });
+    const maxYearVal = Math.max(...yearTotals, 1);
+
+    const barsRow2 = document.createElement("div");
+    barsRow2.style.cssText = "display:flex;align-items:flex-end;gap:6px;height:80px;margin-bottom:6px;";
+
+    years.forEach((y, i) => {
+      const val = yearTotals[i];
+      const pct = (val / maxYearVal) * 100;
+      const isSelected = y === state.selectedYear;
+
+      const col2 = document.createElement("div");
+      col2.style.cssText = "flex:1;display:flex;flex-direction:column;align-items:center;height:100%;justify-content:flex-end;cursor:pointer;";
+      col2.onclick = () => { state.selectedYear = y; renderBudget(); };
+
+      const bar = document.createElement("div");
+      bar.style.cssText = `width:100%;border-radius:4px 4px 0 0;background:${isSelected?"#1D4ED8":"#93C5FD"};`;
+      bar.style.height = val > 0 ? Math.max(pct, 4) + "%" : "4%";
+      bar.style.opacity = val > 0 ? "1" : "0.2";
+
+      col2.appendChild(bar);
+      barsRow2.appendChild(col2);
+    });
+
+    const labelsRow2 = document.createElement("div");
+    labelsRow2.style.cssText = "display:flex;gap:6px;";
+    years.forEach(y => {
+      const lbl = document.createElement("div");
+      const isSelected = y === state.selectedYear;
+      lbl.style.cssText = `flex:1;text-align:center;font-size:10px;font-weight:${isSelected?"700":"600"};color:${isSelected?"#1D4ED8":"#aaa"};`;
+      lbl.textContent = y;
+      labelsRow2.appendChild(lbl);
+    });
+
+    overviewDiv.appendChild(barsRow2);
+    overviewDiv.appendChild(labelsRow2);
+    list.appendChild(overviewDiv);
+  }
+
+  // ── Summary banner ──
+  if (total > 0) {
+    const avgDiv = document.createElement("div");
+    avgDiv.style.cssText = "background:linear-gradient(135deg,#1D4ED8,#3B82F6);border-radius:16px;padding:14px 16px;margin-bottom:14px;display:flex;justify-content:space-between;align-items:center;box-shadow:0 4px 16px rgba(29,78,216,0.3);";
+    avgDiv.innerHTML = `
+      <div>
+        <div style="color:rgba(255,255,255,0.75);font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;">Totalt ${yearStr}</div>
+        <div style="color:#fff;font-size:26px;font-weight:700;">${total.toLocaleString("sv-SE")} kr</div>
+      </div>
+      <div style="text-align:right">
+        <div style="color:rgba(255,255,255,0.75);font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;">Snitt/månad</div>
+        <div style="color:#fff;font-size:18px;font-weight:700;">${avg.toLocaleString("sv-SE")} kr</div>
+      </div>`;
+    list.appendChild(avgDiv);
+  }
+
+  // ── Monthly bar chart ──
+  const chartDiv = document.createElement("div");
+  chartDiv.style.cssText = "background:#fff;border-radius:16px;padding:16px 12px 8px;margin-bottom:14px;";
+
+  const barsRow = document.createElement("div");
+  barsRow.style.cssText = "display:flex;align-items:flex-end;gap:4px;height:100px;margin-bottom:6px;";
+
+  const currentMonth = new Date().getMonth();
+  const isCurrentYear = year === new Date().getFullYear();
+
+  MONTHS.forEach((m, idx) => {
+    const val = budget[m] || 0;
+    const pct = maxVal > 0 ? (val / maxVal) * 100 : 0;
+    const isCurrentMonth = isCurrentYear && idx === currentMonth;
+
+    const col2 = document.createElement("div");
+    col2.style.cssText = "flex:1;display:flex;flex-direction:column;align-items:center;height:100%;justify-content:flex-end;";
+
+    const bar = document.createElement("div");
+    bar.style.cssText = `width:100%;border-radius:4px 4px 0 0;background:${isCurrentMonth?"#1D4ED8":"#93C5FD"};transition:height 0.3s ease;`;
+    bar.style.height = val > 0 ? Math.max(pct, 4) + "%" : "4%";
+    bar.style.opacity = val > 0 ? "1" : "0.2";
+
+    col2.appendChild(bar);
+    barsRow.appendChild(col2);
+  });
+
+  const labelsRow = document.createElement("div");
+  labelsRow.style.cssText = "display:flex;gap:4px;";
+  MONTHS.forEach(m => {
+    const lbl = document.createElement("div");
+    lbl.style.cssText = "flex:1;text-align:center;font-size:9px;color:#999;font-weight:600;";
+    lbl.textContent = m;
+    labelsRow.appendChild(lbl);
+  });
+
+  chartDiv.appendChild(barsRow);
+  chartDiv.appendChild(labelsRow);
+  list.appendChild(chartDiv);
+
+  // ── Month input rows ──
+  MONTHS.forEach(m => {
+    const row = document.createElement("div");
+    row.style.cssText = "display:flex;align-items:center;gap:12px;padding:11px 14px;background:#fff;border-radius:14px;border:1.5px solid #f0f0f0;margin-bottom:8px;min-height:50px;";
+
+    const lbl = document.createElement("span");
+    lbl.style.cssText = "width:36px;font-size:14px;font-weight:600;color:#444;flex-shrink:0;";
+    lbl.textContent = m;
+
+    const inp = document.createElement("input");
+    inp.type = "number";
+    inp.inputMode = "numeric";
+    inp.min = "0";
+    inp.value = budget[m] || "";
+    inp.placeholder = "0 kr";
+    inp.style.cssText = "flex:1;border:none;font-size:15px;color:#222;background:transparent;outline:none;-webkit-appearance:none;";
+    inp.addEventListener("change", () => {
+      if (!state.data["Budget"]) state.data["Budget"] = {};
+      if (!state.data["Budget"][yearStr]) state.data["Budget"][yearStr] = emptyYear();
+      state.data["Budget"][yearStr][m] = parseFloat(inp.value) || 0;
+      saveData();
+      renderBudget();
+    });
+
+    const amt = document.createElement("span");
+    amt.style.cssText = "font-size:12px;color:#aaa;flex-shrink:0;";
+    amt.textContent = "kr";
+
+    row.appendChild(lbl);
+    row.appendChild(inp);
+    row.appendChild(amt);
+    list.appendChild(row);
+  });
+
+}
+
+// ── Render
+
+// ── Render ────────────────────────────────────────────────────────────────────
+function renderItems() {
+  const sec   = state.active;
+  const items = state.data[sec] || [];
+  const col   = COLORS[sec];
+  const isBills = sec === "Räkningar";
+  const done  = items.filter(i => i.done).length;
+
+  // Section title
+  document.getElementById("section-title").textContent = ICONS[sec] + " " + sec;
+  document.getElementById("section-sub").textContent   = done + "/" + items.length + " klara";
+
+  // Status pill
+  const pill = document.getElementById("status-pill");
+  pill.style.background = col.light;
+  pill.style.color = col.accent;
+  pill.textContent = items.length === 0 ? "Tom" : done === items.length ? "Alla klara! 🎉" : (items.length - done) + " kvar";
+
+  // Bills banner
+  const banner = document.getElementById("bills-banner");
+  if (isBills) {
+    banner.classList.remove("hidden");
+    const total = items.reduce((s,i) => s + (parseFloat(i.amount)||0), 0);
+    const paid  = items.filter(i=>i.done).reduce((s,i) => s + (parseFloat(i.amount)||0), 0);
+    document.getElementById("total-amount").textContent     = total.toLocaleString("sv-SE") + " kr";
+    document.getElementById("paid-amount").textContent      = paid.toLocaleString("sv-SE") + " kr";
+    document.getElementById("remaining-amount").textContent = (total-paid).toLocaleString("sv-SE") + " kr kvar";
+  } else {
+    banner.classList.add("hidden");
+  }
+
+  // Progress bar
+  const bar = document.getElementById("progress-bar");
+  bar.style.background = col.light;
+  bar.style.marginBottom = items.length > 0 ? "16px" : "0";
+  const fill = document.getElementById("progress-fill");
+  fill.style.background = col.accent;
+  fill.style.width = items.length > 0 ? ((done/items.length)*100) + "%" : "0%";
+
+  // Items
+  const list = document.getElementById("items-list");
+  list.innerHTML = "";
+  if (items.length === 0 && !state.adding) {
+    list.innerHTML = '<div class="empty-msg">Inget här ännu. Lägg till något!</div>';
+  } else {
+    items.forEach(item => {
+      const div = document.createElement("div");
+      div.className = "item" + (item.done ? " done" : "");
+      div.style.background = item.done ? col.light : "#fff";
+      div.style.borderColor = item.done ? col.light : "#f0f0f0";
+
+      const cb = document.createElement("button");
+      cb.className = "checkbox";
+      cb.style.border = `2px solid ${item.done ? col.accent : "#ccc"}`;
+      cb.style.background = item.done ? col.accent : "transparent";
+      cb.textContent = item.done ? "✓" : "";
+      cb.addEventListener("click", () => toggleItem(item.id));
+
+      const txt = document.createElement("span");
+      txt.className = "item-text";
+      txt.textContent = item.text;
+
+      const rm = document.createElement("button");
+      rm.className = "remove-btn";
+      rm.textContent = "×";
+      rm.addEventListener("click", () => removeItem(item.id));
+
+      div.appendChild(cb);
+      div.appendChild(txt);
+
+      if (isBills) {
+        const amt = document.createElement("span");
+        amt.className = "item-amount";
+        amt.style.color = item.done ? "#bbb" : col.accent;
+        amt.textContent = (parseFloat(item.amount)||0).toLocaleString("sv-SE") + " kr";
+        div.appendChild(amt);
+      }
+
+      div.appendChild(rm);
+      list.appendChild(div);
+    });
+  }
+
+  // Add area
+  renderAddArea();
+}
+
+function renderAddArea() {
+  const sec = state.active;
+  const col = COLORS[sec];
+  const isBills = sec === "Räkningar";
+  const area = document.getElementById("add-area");
+  area.innerHTML = "";
+
+  if (state.adding) {
+    const form = document.createElement("div");
+    form.className = "add-form";
+
+    const row = document.createElement("div");
+    row.className = "add-row";
+
+    const inp = document.createElement("input");
+    inp.className = "add-input";
+    inp.style.borderColor = col.accent;
+    inp.placeholder = isBills ? "Räkningsnamn (t.ex. Netflix)" : "Lägg till i " + sec + "…";
+    inp.id = "new-item-input";
+    inp.autocomplete = "off";
+
+    row.appendChild(inp);
+
+    if (isBills) {
+      const amt = document.createElement("input");
+      amt.className = "add-amount";
+      amt.style.borderColor = col.accent;
+      amt.placeholder = "0 kr";
+      amt.type = "number";
+      amt.inputMode = "numeric";
+      amt.min = "0";
+      amt.id = "new-item-amount";
+      row.appendChild(amt);
+    }
+
+    const addBtn = document.createElement("button");
+    addBtn.className = "add-btn";
+    addBtn.style.background = col.accent;
+    addBtn.textContent = "Lägg till";
+    addBtn.addEventListener("click", addItem);
+
+    form.appendChild(row);
+    form.appendChild(addBtn);
+    area.appendChild(form);
+
+    // Focus & key handlers
+    setTimeout(() => { const el = document.getElementById("new-item-input"); if(el) el.focus(); }, 50);
+    inp.addEventListener("keydown", e => {
+      if (e.key === "Enter") addItem();
+      if (e.key === "Escape") { state.adding = false; renderItems(); }
+    });
+  } else {
+    const btn = document.createElement("button");
+    btn.className = "add-trigger";
+    btn.style.border = `2px dashed ${col.accent}`;
+    btn.style.color = col.accent;
+    btn.textContent = "+ Lägg till";
+    btn.addEventListener("click", () => { state.adding = true; renderItems(); });
+    area.appendChild(btn);
+  }
+}
+
+// ── Actions ───────────────────────────────────────────────────────────────────
+function toggleItem(id) {
+  const items = state.data[state.active];
+  const item  = items.find(i => i.id === id);
+  if (item) item.done = !item.done;
+  renderItems();
+  saveData();
+}
+
+function removeItem(id) {
+  state.data[state.active] = state.data[state.active].filter(i => i.id !== id);
+  renderItems();
+  saveData();
+}
+
+function addItem() {
+  const inp = document.getElementById("new-item-input");
+  if (!inp || !inp.value.trim()) return;
+  const isBills = state.active === "Räkningar";
+  const amtEl   = document.getElementById("new-item-amount");
+  const newItem = isBills
+    ? { id: Date.now(), text: inp.value.trim(), amount: parseFloat(amtEl ? amtEl.value : 0)||0, done: false }
+    : { id: Date.now(), text: inp.value.trim(), done: false };
+  state.data[state.active].push(newItem);
+  state.adding = false;
+  renderItems();
+  saveData();
+}
+
+// ── Init ──────────────────────────────────────────────────────────────────────
+setSyncStatus("idle");
+
+// Auto-login if room code was saved previously
+try {
+  const saved = localStorage.getItem("vart-hem-room");
+  if (saved) {
+    document.getElementById("room-input").value = saved;
+    joinRoom();
+  }
+} catch {}
+</script>
+
+<!--
+════════════════════════════════════════════════════════════
+  📋 HOW TO SET UP JSONBIN SYNC (takes 3 minutes)
+════════════════════════════════════════════════════════════
+
+1. Go to https://jsonbin.io and click "Sign Up" (free)
+
+2. After logging in, click "API Keys" in the top menu
+   → Click "Create Access Key"
+   → Copy the key (starts with $2b$...)
+
+3. Click "Bins" → "Create Bin"
+   → Paste this as the content: {"rooms":{}}
+   → Click "Create"
+   → Copy the BIN ID from the URL (the long string after /b/)
+
+4. Open this HTML file in a text editor (Notepad, TextEdit, etc.)
+   Find these two lines near the top of the <script> tag:
+
+     const JSONBIN_API_KEY  = "$2a$10$y3xO.n927i8MaSlkLuXoT.trjFOgEkinsshzWSqxFU.qJk6Owe88C";
+     const JSONBIN_BIN_ID   = "69986af8ae596e708f3a44d2";
+
+   Replace the placeholder text with your actual key and bin ID.
+
+5. Save the file and send it to your wife too (same file, same key)
+   OR host it for free:
+   → Go to https://tiiny.host
+   → Drag & drop this HTML file
+   → Get a free link you can both open on your phones!
+
+════════════════════════════════════════════════════════════
+-->
+
+</body>
+</html>
