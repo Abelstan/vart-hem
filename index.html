@@ -1,0 +1,1381 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+<meta name="theme-color" content="#0A0A0F"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="Vårt Hem"/>
+<meta name="robots" content="noindex, nofollow"/>
+<title>Vårt Hem</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet"/>
+<style>
+:root {
+  --bg:        #0A0A0F;
+  --surface:   #13131A;
+  --surface2:  #1C1C26;
+  --border:    rgba(255,255,255,0.07);
+  --text:      #F0F0F5;
+  --muted:     rgba(240,240,245,0.4);
+  --albin:     #4F7FFF;
+  --evelina:   #FF6B9D;
+  --gold:      #F5C842;
+  --green:     #3DDC84;
+  --red:       #FF5A5A;
+  --radius:    18px;
+  --font:      'DM Sans', sans-serif;
+  --serif:     'DM Serif Display', serif;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; background: var(--bg); color: var(--text); font-family: var(--font); }
+body { overscroll-behavior: none; -webkit-tap-highlight-color: transparent; }
+input, button, textarea { font-family: var(--font); }
+button { cursor: pointer; border: none; background: none; color: inherit; }
+input { outline: none; }
+::-webkit-scrollbar { display: none; }
+
+/* ── SCREENS ── */
+.screen { display: none; min-height: 100dvh; flex-direction: column; }
+.screen.active { display: flex; }
+
+/* ── SETUP SCREEN ── */
+#setup-screen {
+  align-items: center;
+  justify-content: center;
+  padding: max(40px,env(safe-area-inset-top)) 24px max(40px,env(safe-area-inset-bottom));
+  background: var(--bg);
+}
+.setup-logo { font-family: var(--serif); font-size: 42px; color: var(--text); margin-bottom: 6px; text-align: center; }
+.setup-sub { color: var(--muted); font-size: 14px; text-align: center; margin-bottom: 48px; font-style: italic; }
+.setup-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 24px;
+  padding: 28px;
+  width: 100%;
+  max-width: 400px;
+}
+.setup-card h2 { font-size: 16px; font-weight: 600; margin-bottom: 6px; }
+.setup-card p { font-size: 13px; color: var(--muted); line-height: 1.6; margin-bottom: 20px; }
+.input-field {
+  width: 100%;
+  padding: 14px 16px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  color: var(--text);
+  font-size: 15px;
+  margin-bottom: 10px;
+  -webkit-appearance: none;
+}
+.input-field::placeholder { color: var(--muted); }
+.btn-main {
+  width: 100%;
+  padding: 15px;
+  background: var(--text);
+  color: var(--bg);
+  border-radius: 12px;
+  font-size: 15px;
+  font-weight: 600;
+  min-height: 52px;
+  touch-action: manipulation;
+  -webkit-appearance: none;
+  transition: opacity 0.2s;
+  margin-bottom: 12px;
+}
+.btn-main:disabled { opacity: 0.4; }
+.err { color: var(--red); font-size: 12px; margin-bottom: 8px; min-height: 18px; }
+
+/* ── PROFILE SCREEN ── */
+#profile-screen {
+  align-items: center;
+  justify-content: center;
+  padding: max(40px,env(safe-area-inset-top)) 24px max(40px,env(safe-area-inset-bottom));
+}
+.profile-title { font-family: var(--serif); font-size: 32px; text-align: center; margin-bottom: 8px; }
+.profile-sub { color: var(--muted); font-size: 14px; text-align: center; margin-bottom: 40px; }
+.profiles-row { display: flex; gap: 16px; width: 100%; max-width: 360px; }
+.profile-btn {
+  flex: 1;
+  padding: 28px 16px;
+  border-radius: 20px;
+  border: 2px solid var(--border);
+  background: var(--surface);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  transition: all 0.2s;
+  touch-action: manipulation;
+}
+.profile-btn:active { transform: scale(0.97); }
+.profile-avatar {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 26px;
+  font-weight: 700;
+}
+.profile-name { font-size: 16px; font-weight: 600; }
+.profile-btn.albin .profile-avatar { background: rgba(79,127,255,0.15); color: var(--albin); }
+.profile-btn.albin { border-color: rgba(79,127,255,0.3); }
+.profile-btn.evelina .profile-avatar { background: rgba(255,107,157,0.15); color: var(--evelina); }
+.profile-btn.evelina { border-color: rgba(255,107,157,0.3); }
+
+/* ── MAIN APP ── */
+#main-screen {
+  padding-top: max(0px, env(safe-area-inset-top));
+  padding-bottom: max(80px, calc(env(safe-area-inset-bottom) + 70px));
+}
+
+/* ── TOP BAR ── */
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px 12px;
+  position: sticky;
+  top: 0;
+  background: var(--bg);
+  z-index: 100;
+  border-bottom: 1px solid var(--border);
+}
+.topbar-logo { font-family: var(--serif); font-size: 22px; }
+.topbar-right { display: flex; align-items: center; gap: 10px; }
+.profile-chip {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 12px 6px 8px;
+  border-radius: 40px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  font-size: 13px;
+  font-weight: 500;
+  touch-action: manipulation;
+}
+.profile-dot {
+  width: 22px; height: 22px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 700;
+}
+.sync-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--green);
+  box-shadow: 0 0 6px var(--green);
+  transition: all 0.3s;
+}
+.sync-dot.syncing { background: var(--gold); box-shadow: 0 0 6px var(--gold); }
+
+/* ── PAGE CONTENT ── */
+.page { display: none; padding: 20px; }
+.page.active { display: block; }
+
+/* ── OVERVIEW ── */
+.overview-greeting { font-family: var(--serif); font-size: 28px; margin-bottom: 4px; }
+.overview-date { color: var(--muted); font-size: 13px; margin-bottom: 24px; }
+
+.overview-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+.ov-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.ov-card.wide { grid-column: span 2; }
+.ov-label { font-size: 11px; font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase; color: var(--muted); }
+.ov-value { font-size: 24px; font-weight: 600; }
+.ov-sub { font-size: 12px; color: var(--muted); }
+.ov-icon { font-size: 22px; margin-bottom: 2px; }
+
+.mini-progress { height: 4px; background: var(--surface2); border-radius: 4px; overflow: hidden; margin-top: 4px; }
+.mini-progress-fill { height: 100%; border-radius: 4px; transition: width 0.4s; }
+
+.activity-title { font-size: 15px; font-weight: 600; margin-bottom: 12px; margin-top: 8px; }
+.activity-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  margin-bottom: 8px;
+}
+.activity-who {
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 700; flex-shrink: 0;
+}
+.activity-text { flex: 1; font-size: 14px; }
+.activity-sec { font-size: 11px; color: var(--muted); }
+.activity-time { font-size: 11px; color: var(--muted); white-space: nowrap; }
+
+/* ── SECTION PAGES ── */
+.page-header { margin-bottom: 20px; }
+.page-header h2 { font-family: var(--serif); font-size: 28px; margin-bottom: 4px; }
+.page-header p { color: var(--muted); font-size: 13px; }
+
+.section-banner {
+  border-radius: var(--radius);
+  padding: 18px;
+  margin-bottom: 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.item-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  margin-bottom: 8px;
+  min-height: 56px;
+  transition: all 0.2s;
+}
+.item-card.done { opacity: 0.5; }
+.check-btn {
+  width: 26px; height: 26px;
+  border-radius: 8px;
+  border: 2px solid var(--border);
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  font-size: 12px;
+  transition: all 0.2s;
+  touch-action: manipulation;
+}
+.check-btn.checked { background: var(--green); border-color: var(--green); color: var(--bg); }
+.item-info { flex: 1; min-width: 0; }
+.item-text { font-size: 15px; font-weight: 500; }
+.item-card.done .item-text { text-decoration: line-through; }
+.item-who { font-size: 11px; color: var(--muted); margin-top: 2px; display: flex; align-items: center; gap: 4px; }
+.item-amount { font-size: 14px; font-weight: 600; margin-right: 8px; white-space: nowrap; }
+.remove-btn { color: rgba(255,255,255,0.2); font-size: 20px; padding: 4px 6px; touch-action: manipulation; min-width: 32px; display: flex; align-items: center; justify-content: center; }
+.remove-btn:hover { color: var(--red); }
+
+.add-trigger {
+  width: 100%;
+  padding: 14px;
+  border: 2px dashed var(--border);
+  border-radius: 14px;
+  color: var(--muted);
+  font-size: 14px;
+  font-weight: 500;
+  touch-action: manipulation;
+  margin-top: 4px;
+  transition: all 0.2s;
+}
+.add-trigger:hover { border-color: rgba(255,255,255,0.2); color: var(--text); }
+
+.add-form { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 14px; margin-top: 8px; display: flex; flex-direction: column; gap: 10px; }
+.add-row { display: flex; gap: 8px; }
+.add-input {
+  flex: 1;
+  padding: 11px 14px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  color: var(--text);
+  font-size: 15px;
+  -webkit-appearance: none;
+  min-height: 46px;
+}
+.add-input::placeholder { color: var(--muted); }
+.add-amount {
+  width: 90px;
+  padding: 11px 10px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  color: var(--text);
+  font-size: 15px;
+  -webkit-appearance: none;
+  min-height: 46px;
+}
+.add-submit {
+  padding: 12px;
+  background: var(--text);
+  color: var(--bg);
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  min-height: 46px;
+  touch-action: manipulation;
+}
+
+/* ── SAVINGS ── */
+.saving-goal-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 18px;
+  margin-bottom: 12px;
+}
+.saving-goal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+.saving-goal-name { font-size: 16px; font-weight: 600; }
+.saving-goal-emoji { font-size: 22px; }
+.saving-amounts { display: flex; justify-content: space-between; margin-bottom: 10px; }
+.saving-current { font-size: 22px; font-weight: 600; }
+.saving-target { font-size: 14px; color: var(--muted); text-align: right; }
+.saving-bar { height: 8px; background: var(--surface2); border-radius: 8px; overflow: hidden; margin-bottom: 8px; }
+.saving-bar-fill { height: 100%; border-radius: 8px; background: var(--gold); transition: width 0.5s; }
+.saving-meta { display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); }
+.saving-contributors { display: flex; gap: 6px; margin-top: 10px; }
+.saving-contrib {
+  flex: 1;
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: var(--surface2);
+  font-size: 12px;
+}
+.saving-contrib-name { color: var(--muted); margin-bottom: 2px; }
+.saving-contrib-amt { font-size: 14px; font-weight: 600; }
+
+.add-saving-form { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px; margin-bottom: 12px; }
+.form-label { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: var(--muted); margin-bottom: 8px; }
+.emoji-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+.emoji-btn { width: 36px; height: 36px; border-radius: 8px; background: var(--surface2); border: 2px solid transparent; font-size: 18px; display: flex; align-items: center; justify-content: center; touch-action: manipulation; transition: all 0.15s; }
+.emoji-btn.selected { border-color: var(--gold); background: rgba(245,200,66,0.1); }
+
+/* ── BUDGET ── */
+.budget-year-nav { display: flex; align-items: center; justify-content: center; gap: 16px; margin-bottom: 16px; }
+.year-nav-btn { width: 36px; height: 36px; border-radius: 50%; background: var(--surface); border: 1px solid var(--border); color: var(--text); font-size: 18px; display: flex; align-items: center; justify-content: center; touch-action: manipulation; }
+.year-label { font-size: 20px; font-weight: 600; min-width: 60px; text-align: center; }
+
+.month-row { display: flex; align-items: center; gap: 12px; padding: 12px 14px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; margin-bottom: 8px; min-height: 50px; }
+.month-lbl { width: 36px; font-size: 13px; font-weight: 600; color: var(--muted); flex-shrink: 0; }
+.month-inp { flex: 1; background: transparent; border: none; color: var(--text); font-size: 15px; font-weight: 500; -webkit-appearance: none; }
+.month-inp::placeholder { color: rgba(255,255,255,0.15); }
+.month-unit { font-size: 12px; color: var(--muted); }
+
+.bar-chart { display: flex; align-items: flex-end; gap: 3px; height: 80px; margin-bottom: 6px; }
+.bar-col { flex: 1; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; height: 100%; }
+.bar-fill { width: 100%; border-radius: 3px 3px 0 0; min-height: 3px; transition: height 0.4s; }
+.bar-lbl { font-size: 8px; color: var(--muted); margin-top: 4px; font-weight: 600; }
+
+/* ── KALENDER ── */
+.cal-nav { display: flex; align-items: center; justify-content: center; gap: 16px; margin-bottom: 16px; }
+.cal-nav-btn { width: 36px; height: 36px; border-radius: 50%; background: var(--surface); border: 1px solid var(--border); color: var(--text); font-size: 18px; display: flex; align-items: center; justify-content: center; touch-action: manipulation; }
+.cal-month-lbl { font-size: 17px; font-weight: 600; min-width: 160px; text-align: center; }
+
+.cal-grid-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 10px; margin-bottom: 16px; }
+.cal-weekdays { display: grid; grid-template-columns: repeat(7,1fr); gap: 2px; margin-bottom: 8px; }
+.cal-weekday { text-align: center; font-size: 10px; font-weight: 700; color: var(--muted); letter-spacing: 0.3px; }
+.cal-days { display: grid; grid-template-columns: repeat(7,1fr); gap: 3px; }
+.cal-day {
+  display: flex; flex-direction: column; align-items: center;
+  padding: 5px 2px 4px;
+  border-radius: 8px;
+  min-height: 40px;
+  cursor: pointer;
+  touch-action: manipulation;
+  position: relative;
+  transition: background 0.15s;
+}
+.cal-day:active { background: var(--surface2); }
+.cal-day-num { font-size: 13px; font-weight: 500; }
+.cal-day.today .cal-day-num { font-weight: 700; width: 24px; height: 24px; background: var(--text); color: var(--bg); border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+.cal-day.has-events .cal-day-num { color: var(--evelina); }
+.cal-dots { display: flex; gap: 2px; margin-top: 3px; flex-wrap: wrap; justify-content: center; }
+.cal-dot { width: 5px; height: 5px; border-radius: 50%; }
+.cal-star { position: absolute; top: 2px; right: 3px; font-size: 7px; }
+
+.event-card { display: flex; align-items: center; gap: 12px; padding: 12px 14px; background: var(--surface); border: 1px solid var(--border); border-radius: 14px; margin-bottom: 8px; }
+.event-icon-wrap { width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
+.event-info { flex: 1; }
+.event-title { font-size: 14px; font-weight: 500; }
+.event-date { font-size: 11px; color: var(--muted); margin-top: 2px; }
+.event-star { font-size: 16px; }
+
+/* ── MODAL ── */
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 1000; display: flex; align-items: flex-end; justify-content: center; backdrop-filter: blur(4px); }
+.modal-box { background: var(--surface); border-radius: 24px 24px 0 0; padding: 24px 20px; padding-bottom: max(24px, env(safe-area-inset-bottom)); width: 100%; max-width: 500px; max-height: 80vh; overflow-y: auto; }
+.modal-handle { width: 40px; height: 4px; background: var(--border); border-radius: 2px; margin: 0 auto 20px; }
+.modal-title { font-size: 18px; font-weight: 600; margin-bottom: 16px; display: flex; align-items: center; justify-content: space-between; }
+.modal-close { color: var(--muted); font-size: 22px; touch-action: manipulation; }
+.modal-label { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: var(--muted); margin-bottom: 8px; margin-top: 14px; }
+.type-row { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 4px; }
+.type-chip { padding: 7px 12px; border-radius: 20px; border: 1.5px solid var(--border); font-size: 12px; font-weight: 600; color: var(--muted); touch-action: manipulation; transition: all 0.15s; }
+.type-chip.active { border-color: currentColor; color: var(--text); background: rgba(255,255,255,0.08); }
+.star-toggle { display: flex; align-items: center; gap: 8px; padding: 10px 14px; border-radius: 10px; background: var(--surface2); border: 1.5px solid var(--border); font-size: 13px; font-weight: 500; touch-action: manipulation; margin-bottom: 4px; transition: all 0.2s; }
+.star-toggle.on { border-color: var(--gold); color: var(--gold); background: rgba(245,200,66,0.08); }
+
+/* ── BOTTOM NAV ── */
+.bottom-nav {
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  display: flex;
+  padding-bottom: max(12px, env(safe-area-inset-bottom));
+  z-index: 200;
+}
+.nav-btn {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 10px 4px 4px;
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  touch-action: manipulation;
+  transition: color 0.2s;
+}
+.nav-btn.active { color: var(--text); }
+.nav-icon { font-size: 22px; line-height: 1; }
+
+/* ── UTILS ── */
+.tag { display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; border-radius: 20px; font-size: 11px; font-weight: 600; }
+.empty { text-align: center; padding: 32px 0; color: var(--muted); font-size: 14px; }
+.divider { height: 1px; background: var(--border); margin: 16px 0; }
+</style>
+</head>
+<body>
+
+<!-- ── SETUP SCREEN ─────────────────────────────────────────────────────── -->
+<div id="setup-screen" class="screen">
+  <div style="font-size:48px;text-align:center;margin-bottom:12px;">🏠</div>
+  <div class="setup-logo">Vårt Hem</div>
+  <div class="setup-sub">delat med kärlek ♥</div>
+  <div class="setup-card">
+    <h2>Ange rumskod</h2>
+    <p>Du och din partner använder <strong style="color:var(--text)">samma kod</strong> för att dela data i realtid.</p>
+    <input id="room-input" class="input-field" type="text" placeholder="t.ex. fuxvagen24" autocapitalize="none" autocorrect="off" autocomplete="off"/>
+    <div id="setup-err" class="err"></div>
+    <button id="setup-btn" class="btn-main">Fortsätt →</button>
+    <div style="font-size:12px;color:var(--muted);text-align:center;">Koden sparas — du behöver bara ange den en gång</div>
+  </div>
+</div>
+
+<!-- ── PROFILE SCREEN ────────────────────────────────────────────────────── -->
+<div id="profile-screen" class="screen">
+  <div class="profile-title">Vem är du?</div>
+  <div class="profile-sub">Välj din profil — sparas automatiskt</div>
+  <div class="profiles-row">
+    <button class="profile-btn albin" onclick="selectProfile('Albin')">
+      <div class="profile-avatar">A</div>
+      <div class="profile-name">Albin</div>
+    </button>
+    <button class="profile-btn evelina" onclick="selectProfile('Evelina')">
+      <div class="profile-avatar">E</div>
+      <div class="profile-name">Evelina</div>
+    </button>
+  </div>
+</div>
+
+<!-- ── MAIN SCREEN ───────────────────────────────────────────────────────── -->
+<div id="main-screen" class="screen">
+
+  <!-- Top bar -->
+  <div class="topbar">
+    <div class="topbar-logo">Vårt Hem</div>
+    <div class="topbar-right">
+      <div class="sync-dot" id="sync-dot"></div>
+      <button class="profile-chip" onclick="switchProfile()" id="profile-chip">
+        <div class="profile-dot" id="profile-dot-top"></div>
+        <span id="profile-name-top"></span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Pages -->
+  <div id="page-overview" class="page active"></div>
+  <div id="page-rakningar" class="page"></div>
+  <div id="page-inkop" class="page"></div>
+  <div id="page-attgora" class="page"></div>
+  <div id="page-sparande" class="page"></div>
+  <div id="page-budget" class="page"></div>
+  <div id="page-kalender" class="page"></div>
+
+  <!-- Bottom nav -->
+  <nav class="bottom-nav">
+    <button class="nav-btn active" data-page="overview" onclick="showPage('overview',this)">
+      <div class="nav-icon">🏠</div>Hem
+    </button>
+    <button class="nav-btn" data-page="rakningar" onclick="showPage('rakningar',this)">
+      <div class="nav-icon">💳</div>Räkningar
+    </button>
+    <button class="nav-btn" data-page="inkop" onclick="showPage('inkop',this)">
+      <div class="nav-icon">🛒</div>Inköp
+    </button>
+    <button class="nav-btn" data-page="attgora" onclick="showPage('attgora',this)">
+      <div class="nav-icon">✅</div>Att-göra
+    </button>
+    <button class="nav-btn" data-page="sparande" onclick="showPage('sparande',this)">
+      <div class="nav-icon">💰</div>Sparande
+    </button>
+    <button class="nav-btn" data-page="budget" onclick="showPage('budget',this)">
+      <div class="nav-icon">📊</div>Budget
+    </button>
+    <button class="nav-btn" data-page="kalender" onclick="showPage('kalender',this)">
+      <div class="nav-icon">📅</div>Kalender
+    </button>
+  </nav>
+</div>
+
+<script>
+// ══════════════════════════════════════════════════════════════
+const JSONBIN_API_KEY = "$2a$10$y3xO.n927i8MaSlkLuXoT.trjFOgEkinsshzWSqxFU.qJk6Owe88C";
+const JSONBIN_BIN_ID  = "69986af8ae596e708f3a44d2";
+// ══════════════════════════════════════════════════════════════
+
+const MONTHS_SHORT = ["Jan","Feb","Mar","Apr","Maj","Jun","Jul","Aug","Sep","Okt","Nov","Dec"];
+const MONTHS_FULL  = ["Januari","Februari","Mars","April","Maj","Juni","Juli","Augusti","September","Oktober","November","December"];
+const WEEKDAYS     = ["Mån","Tis","Ons","Tor","Fre","Lör","Sön"];
+const EVENT_TYPES  = [
+  {key:"birthday", label:"Födelsedag", icon:"🎂", color:"#FF6B9D"},
+  {key:"doctor",   label:"Läkarbesök", icon:"🏥", color:"#3DDC84"},
+  {key:"vacation", label:"Semester",   icon:"✈️", color:"#4F7FFF"},
+  {key:"other",    label:"Annat",      icon:"⭐", color:"#F5C842"},
+];
+const GOAL_EMOJIS = ["🏖️","🚗","🏠","💍","✈️","📱","🎓","🎸","⛵","🐕","🎁","💎"];
+
+const DEFAULT_DATA = {
+  rakningar:  [],
+  inkop:      [],
+  attgora:    [],
+  kalender:   [],
+  kalYear:    new Date().getFullYear(),
+  kalMonth:   new Date().getMonth(),
+  budget:     { [new Date().getFullYear()]: {} },
+  sparande:   [],
+  activity:   [],
+};
+
+// ── State ─────────────────────────────────────────────────────
+let room    = null;
+let profile = null; // 'Albin' | 'Evelina'
+let data    = JSON.parse(JSON.stringify(DEFAULT_DATA));
+let currentPage = 'overview';
+let pollInterval = null;
+let lastSavedJSON = "";
+let addingIn = null;
+let budgetYear = new Date().getFullYear();
+let savingAdding = false;
+let savingDepositGoalId = null;
+
+const isConfigured = JSONBIN_API_KEY !== "PASTE_YOUR_API_KEY_HERE";
+
+// ── JSONBin ────────────────────────────────────────────────────
+async function jbGet() {
+  if (!isConfigured) return null;
+  try {
+    const r = await fetch(`https://api.jsonbin.io/v3/b/${JSONBIN_BIN_ID}/latest`, {
+      headers: {"X-Master-Key": JSONBIN_API_KEY, "X-Bin-Meta": "false"}
+    });
+    return r.ok ? await r.json() : null;
+  } catch { return null; }
+}
+async function jbSet(payload) {
+  if (!isConfigured) return;
+  try {
+    await fetch(`https://api.jsonbin.io/v3/b/${JSONBIN_BIN_ID}`, {
+      method: "PUT",
+      headers: {"Content-Type":"application/json","X-Master-Key": JSONBIN_API_KEY},
+      body: JSON.stringify(payload)
+    });
+  } catch {}
+}
+
+function setSyncing(on) {
+  const d = document.getElementById("sync-dot");
+  if (d) d.className = "sync-dot" + (on ? " syncing" : "");
+}
+
+async function saveData() {
+  const json = JSON.stringify(data);
+  if (json === lastSavedJSON) return;
+  lastSavedJSON = json;
+  setSyncing(true);
+  const current = await jbGet();
+  const rooms = (current && current.rooms) ? current.rooms : {};
+  rooms[room] = data;
+  await jbSet({rooms});
+  setSyncing(false);
+}
+
+async function pollRemote() {
+  if (!isConfigured || !room) return;
+  const current = await jbGet();
+  if (!current?.rooms?.[room]) return;
+  const rj = JSON.stringify(current.rooms[room]);
+  if (rj !== lastSavedJSON) {
+    lastSavedJSON = rj;
+    data = current.rooms[room];
+    renderCurrentPage();
+  }
+}
+
+// ── Setup ──────────────────────────────────────────────────────
+document.getElementById("setup-btn").addEventListener("click", doSetup);
+document.getElementById("room-input").addEventListener("keydown", e => { if (e.key==="Enter") doSetup(); });
+
+async function doSetup() {
+  const code = document.getElementById("room-input").value.trim().toLowerCase().replace(/\s+/g,"-");
+  if (!code) { document.getElementById("setup-err").textContent = "Ange en rumskod."; return; }
+  const btn = document.getElementById("setup-btn");
+  btn.textContent = "Ansluter…"; btn.disabled = true;
+  room = code;
+  try { localStorage.setItem("vh-room", code); } catch {}
+  if (isConfigured) {
+    const current = await jbGet();
+    if (current?.rooms?.[room]) {
+      data = current.rooms[room];
+      // Migrate old format if needed
+      if (!data.sparande) data.sparande = [];
+      if (!data.activity) data.activity = [];
+      if (!data.budget) data.budget = {};
+      lastSavedJSON = JSON.stringify(data);
+    } else {
+      await saveData();
+    }
+    pollInterval = setInterval(pollRemote, 60000);
+  }
+  btn.textContent = "Fortsätt →"; btn.disabled = false;
+
+  // Check saved profile
+  try {
+    const savedProfile = localStorage.getItem("vh-profile");
+    if (savedProfile) {
+      profile = savedProfile;
+      showMain();
+      return;
+    }
+  } catch {}
+  showScreen("profile-screen");
+}
+
+function selectProfile(name) {
+  profile = name;
+  try { localStorage.setItem("vh-profile", name); } catch {}
+  showMain();
+}
+
+function switchProfile() {
+  try { localStorage.removeItem("vh-profile"); } catch {}
+  showScreen("profile-screen");
+}
+
+// ── Screens ────────────────────────────────────────────────────
+function showScreen(id) {
+  document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
+  document.getElementById(id).classList.add("active");
+}
+
+function showMain() {
+  showScreen("main-screen");
+  const color = profile === "Albin" ? "var(--albin)" : "var(--evelina)";
+  const bg = profile === "Albin" ? "rgba(79,127,255,0.15)" : "rgba(255,107,157,0.15)";
+  const dot = document.getElementById("profile-dot-top");
+  dot.style.background = bg;
+  dot.style.color = color;
+  dot.textContent = profile[0];
+  document.getElementById("profile-name-top").textContent = profile;
+  showPage("overview", document.querySelector('[data-page="overview"]'));
+}
+
+// ── Navigation ─────────────────────────────────────────────────
+function showPage(page, btn) {
+  document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
+  document.querySelectorAll(".nav-btn").forEach(b => b.classList.remove("active"));
+  document.getElementById("page-" + page).classList.add("active");
+  if (btn) btn.classList.add("active");
+  currentPage = page;
+  addingIn = null;
+  savingAdding = false;
+  savingDepositGoalId = null;
+  renderCurrentPage();
+}
+
+function renderCurrentPage() {
+  switch(currentPage) {
+    case "overview":  renderOverview(); break;
+    case "rakningar": renderList("rakningar"); break;
+    case "inkop":     renderList("inkop"); break;
+    case "attgora":   renderList("attgora"); break;
+    case "sparande":  renderSparande(); break;
+    case "budget":    renderBudget(); break;
+    case "kalender":  renderKalender(); break;
+  }
+}
+
+// ── Activity Log ───────────────────────────────────────────────
+function logActivity(action, section) {
+  if (!data.activity) data.activity = [];
+  data.activity.unshift({
+    who: profile,
+    text: action,
+    section: section,
+    time: Date.now()
+  });
+  data.activity = data.activity.slice(0, 20);
+}
+
+function timeAgo(ts) {
+  const diff = (Date.now() - ts) / 1000;
+  if (diff < 60) return "just nu";
+  if (diff < 3600) return Math.floor(diff/60) + " min sedan";
+  if (diff < 86400) return Math.floor(diff/3600) + " tim sedan";
+  return Math.floor(diff/86400) + " dag sedan";
+}
+
+// ── Navigation helper ─────────────────────────────────────────
+function goTo(page) {
+  const btn = document.querySelector('[data-page="' + page + '"]');
+  showPage(page, btn);
+}
+
+// ── Overview ───────────────────────────────────────────────────
+function renderOverview() {
+  const el = document.getElementById("page-overview");
+  const now = new Date();
+  const greeting = now.getHours() < 12 ? "God morgon" : now.getHours() < 18 ? "God eftermiddag" : "God kväll";
+  const dateStr = now.toLocaleDateString("sv-SE", {weekday:"long", day:"numeric", month:"long"});
+
+  // Stats
+  const rakn = data.rakningar || [];
+  const totalBills = rakn.reduce((s,i) => s+(parseFloat(i.amount)||0), 0);
+  const paidBills  = rakn.filter(i=>i.done).reduce((s,i) => s+(parseFloat(i.amount)||0), 0);
+  const inkopDone  = (data.inkop||[]).filter(i=>i.done).length;
+  const inkopTotal = (data.inkop||[]).length;
+  const todoDone   = (data.attgora||[]).filter(i=>i.done).length;
+  const todoTotal  = (data.attgora||[]).length;
+
+  // Savings totals
+  const goals = data.sparande || [];
+  const totalSaved = goals.reduce((s,g) => s + (g.deposits||[]).reduce((a,d)=>a+d.amount,0), 0);
+  const totalGoal  = goals.reduce((s,g) => s + g.target, 0);
+
+  // Activity
+  const activity = (data.activity||[]).slice(0,5);
+
+  el.innerHTML = `
+    <div class="overview-greeting">${greeting}, ${profile} 👋</div>
+    <div class="overview-date">${dateStr.charAt(0).toUpperCase()+dateStr.slice(1)}</div>
+
+    <div class="overview-grid">
+      <div class="ov-card" onclick="goTo('rakningar')">
+        <div class="ov-icon">💳</div>
+        <div class="ov-label">Räkningar</div>
+        <div class="ov-value">${totalBills.toLocaleString("sv-SE")} <span style="font-size:14px;color:var(--muted)">kr</span></div>
+        <div class="ov-sub">${paidBills.toLocaleString("sv-SE")} kr betalt</div>
+        <div class="mini-progress"><div class="mini-progress-fill" style="width:${totalBills>0?(paidBills/totalBills*100):0}%;background:var(--green)"></div></div>
+      </div>
+
+      <div class="ov-card" onclick="goTo('sparande')">
+        <div class="ov-icon">💰</div>
+        <div class="ov-label">Sparande</div>
+        <div class="ov-value">${totalSaved.toLocaleString("sv-SE")} <span style="font-size:14px;color:var(--muted)">kr</span></div>
+        <div class="ov-sub">av ${totalGoal.toLocaleString("sv-SE")} kr mål</div>
+        <div class="mini-progress"><div class="mini-progress-fill" style="width:${totalGoal>0?Math.min(totalSaved/totalGoal*100,100):0}%;background:var(--gold)"></div></div>
+      </div>
+
+      <div class="ov-card" onclick="goTo('inkop')">
+        <div class="ov-icon">🛒</div>
+        <div class="ov-label">Inköpslista</div>
+        <div class="ov-value">${inkopDone}<span style="font-size:16px;color:var(--muted)">/${inkopTotal}</span></div>
+        <div class="ov-sub">${inkopTotal-inkopDone} kvar att köpa</div>
+        <div class="mini-progress"><div class="mini-progress-fill" style="width:${inkopTotal>0?(inkopDone/inkopTotal*100):0}%;background:var(--albin)"></div></div>
+      </div>
+
+      <div class="ov-card" onclick="goTo('attgora')">
+        <div class="ov-icon">✅</div>
+        <div class="ov-label">Att-göra</div>
+        <div class="ov-value">${todoDone}<span style="font-size:16px;color:var(--muted)">/${todoTotal}</span></div>
+        <div class="ov-sub">${todoTotal-todoDone} kvar att göra</div>
+        <div class="mini-progress"><div class="mini-progress-fill" style="width:${todoTotal>0?(todoDone/todoTotal*100):0}%;background:var(--evelina)"></div></div>
+      </div>
+    </div>
+
+    <div class="activity-title">Senaste aktivitet</div>
+    ${activity.length === 0 ? '<div class="empty">Ingen aktivitet ännu</div>' : activity.map(a => {
+      const color = a.who === "Albin" ? "var(--albin)" : "var(--evelina)";
+      const bg = a.who === "Albin" ? "rgba(79,127,255,0.15)" : "rgba(255,107,157,0.15)";
+      return `<div class="activity-item">
+        <div class="activity-who" style="background:${bg};color:${color}">${a.who?.[0]||"?"}</div>
+        <div class="activity-info" style="flex:1">
+          <div class="activity-text">${a.text}</div>
+          <div class="activity-sec">${a.section}</div>
+        </div>
+        <div class="activity-time">${timeAgo(a.time)}</div>
+      </div>`;
+    }).join("")}
+  `;
+}
+
+// ── Generic list ───────────────────────────────────────────────
+const SECTION_META = {
+  rakningar: { title:"Räkningar", sub:"Månadens räkningar", icon:"💳", isBills:true },
+  inkop:     { title:"Inköpslista", sub:"Vad behöver vi handla?", icon:"🛒", isBills:false },
+  attgora:   { title:"Att-göra", sub:"Saker att fixa hemma", icon:"✅", isBills:false },
+};
+
+function renderList(sec) {
+  const el = document.getElementById("page-" + sec);
+  const meta = SECTION_META[sec];
+  const items = data[sec] || [];
+  const isBills = meta.isBills;
+  const done = items.filter(i=>i.done).length;
+  const total = isBills ? items.reduce((s,i)=>s+(parseFloat(i.amount)||0),0) : 0;
+  const paid  = isBills ? items.filter(i=>i.done).reduce((s,i)=>s+(parseFloat(i.amount)||0),0) : 0;
+
+  let html = `<div class="page-header"><h2>${meta.icon} ${meta.title}</h2><p>${done}/${items.length} klara</p></div>`;
+
+  if (isBills && items.length > 0) {
+    html += `<div class="section-banner" style="background:var(--surface);border:1px solid var(--border)">
+      <div>
+        <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-bottom:4px">Månadskostnad</div>
+        <div style="font-size:26px;font-weight:600">${total.toLocaleString("sv-SE")} kr</div>
+      </div>
+      <div style="text-align:right">
+        <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-bottom:4px">Betalt</div>
+        <div style="font-size:20px;font-weight:600;color:var(--green)">${paid.toLocaleString("sv-SE")} kr</div>
+        <div style="font-size:12px;color:var(--muted)">${(total-paid).toLocaleString("sv-SE")} kr kvar</div>
+      </div>
+    </div>`;
+  }
+
+  if (items.length === 0) {
+    html += `<div class="empty">Tomt här! Lägg till något 👇</div>`;
+  } else {
+    items.forEach((item, idx) => {
+      const whoColor = item.who === "Albin" ? "var(--albin)" : "var(--evelina)";
+      const whoBg    = item.who === "Albin" ? "rgba(79,127,255,0.12)" : "rgba(255,107,157,0.12)";
+      html += `<div class="item-card ${item.done?"done":""}">
+        <button class="check-btn ${item.done?"checked":""}" onclick="toggleItem('${sec}',${idx})">
+          ${item.done?"✓":""}
+        </button>
+        <div class="item-info">
+          <div class="item-text">${item.text}</div>
+          ${item.who ? `<div class="item-who"><span style="width:14px;height:14px;border-radius:50%;background:${whoBg};color:${whoColor};display:inline-flex;align-items:center;justify-content:center;font-size:8px;font-weight:700">${item.who[0]}</span>${item.who}</div>` : ""}
+        </div>
+        ${isBills ? `<div class="item-amount" style="color:${item.done?"var(--muted)":"var(--text)"}">${(parseFloat(item.amount)||0).toLocaleString("sv-SE")} kr</div>` : ""}
+        <button class="remove-btn" onclick="removeItem('${sec}',${idx})">×</button>
+      </div>`;
+    });
+  }
+
+  // Add form
+  if (addingIn === sec) {
+    html += `<div class="add-form">
+      <div class="add-row">
+        <input class="add-input" id="add-inp" placeholder="${isBills?"Räkningens namn...":"Lägg till..."}" autocomplete="off"/>
+        ${isBills ? `<input class="add-amount" id="add-amt" type="number" inputmode="numeric" placeholder="0"/>` : ""}
+      </div>
+      <button class="add-submit" onclick="submitItem('${sec}')">Lägg till</button>
+    </div>`;
+  } else {
+    html += `<button class="add-trigger" onclick="startAdding('${sec}')">+ Lägg till</button>`;
+  }
+
+  el.innerHTML = html;
+  if (addingIn === sec) {
+    const inp = document.getElementById("add-inp");
+    if (inp) { inp.focus(); inp.addEventListener("keydown", e => { if(e.key==="Enter") submitItem(sec); if(e.key==="Escape"){ addingIn=null; renderList(sec); } }); }
+  }
+}
+
+function startAdding(sec) { addingIn = sec; renderList(sec); }
+
+function submitItem(sec) {
+  const inp = document.getElementById("add-inp");
+  if (!inp?.value.trim()) return;
+  const isBills = SECTION_META[sec].isBills;
+  const amtEl = document.getElementById("add-amt");
+  const item = isBills
+    ? {id:Date.now(), text:inp.value.trim(), amount:parseFloat(amtEl?.value)||0, done:false, who:profile, ts:Date.now()}
+    : {id:Date.now(), text:inp.value.trim(), done:false, who:profile, ts:Date.now()};
+  if (!data[sec]) data[sec] = [];
+  data[sec].push(item);
+  logActivity(`Lade till "${item.text}"`, SECTION_META[sec].title);
+  addingIn = null;
+  saveData();
+  renderList(sec);
+  if (currentPage==="overview") renderOverview();
+}
+
+function toggleItem(sec, idx) {
+  if (!data[sec]?.[idx]) return;
+  data[sec][idx].done = !data[sec][idx].done;
+  data[sec][idx].doneBy = profile;
+  const action = data[sec][idx].done ? `Bockat av "${data[sec][idx].text}"` : `Återöppnade "${data[sec][idx].text}"`;
+  logActivity(action, SECTION_META[sec].title);
+  saveData();
+  renderList(sec);
+}
+
+function removeItem(sec, idx) {
+  const item = data[sec]?.[idx];
+  if (!item) return;
+  logActivity(`Tog bort "${item.text}"`, SECTION_META[sec].title);
+  data[sec].splice(idx, 1);
+  saveData();
+  renderList(sec);
+}
+
+// ── Sparande ───────────────────────────────────────────────────
+function renderSparande() {
+  const el = document.getElementById("page-sparande");
+  const goals = data.sparande || [];
+  let html = `<div class="page-header"><h2>💰 Sparande</h2><p>${goals.length} sparmål</p></div>`;
+
+  goals.forEach((goal, gi) => {
+    const deps = goal.deposits || [];
+    const saved = deps.reduce((s,d)=>s+d.amount,0);
+    const albinSaved = deps.filter(d=>d.who==="Albin").reduce((s,d)=>s+d.amount,0);
+    const evelinaSaved = deps.filter(d=>d.who==="Evelina").reduce((s,d)=>s+d.amount,0);
+    const pct = goal.target > 0 ? Math.min(saved/goal.target*100,100) : 0;
+    const left = Math.max(goal.target - saved, 0);
+
+    html += `<div class="saving-goal-card">
+      <div class="saving-goal-header">
+        <div>
+          <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-bottom:4px">Sparmål</div>
+          <div class="saving-goal-name">${goal.emoji || "💰"} ${goal.name}</div>
+        </div>
+        <button onclick="removeGoal(${gi})" style="color:var(--muted);font-size:18px;touch-action:manipulation;">×</button>
+      </div>
+      <div class="saving-amounts">
+        <div>
+          <div class="saving-current">${saved.toLocaleString("sv-SE")} kr</div>
+          <div style="font-size:12px;color:var(--muted)">${left.toLocaleString("sv-SE")} kr kvar</div>
+        </div>
+        <div class="saving-target">
+          <div style="font-size:12px;color:var(--muted)">Mål</div>
+          <div style="font-size:18px;font-weight:600">${goal.target.toLocaleString("sv-SE")} kr</div>
+          <div style="font-size:12px;color:var(--gold)">${Math.round(pct)}%</div>
+        </div>
+      </div>
+      <div class="saving-bar"><div class="saving-bar-fill" style="width:${pct}%"></div></div>
+      <div class="saving-contributors">
+        <div class="saving-contrib">
+          <div class="saving-contrib-name" style="color:var(--albin)">Albin</div>
+          <div class="saving-contrib-amt">${albinSaved.toLocaleString("sv-SE")} kr</div>
+        </div>
+        <div class="saving-contrib">
+          <div class="saving-contrib-name" style="color:var(--evelina)">Evelina</div>
+          <div class="saving-contrib-amt">${evelinaSaved.toLocaleString("sv-SE")} kr</div>
+        </div>
+      </div>
+      <button onclick="openDeposit(${gi})" style="width:100%;margin-top:12px;padding:11px;background:rgba(245,200,66,0.1);border:1.5px solid rgba(245,200,66,0.3);border-radius:10px;color:var(--gold);font-size:14px;font-weight:600;touch-action:manipulation;">+ Sätt in pengar</button>
+    </div>`;
+  });
+
+  if (savingAdding) {
+    html += renderAddGoalForm();
+  } else {
+    html += `<button class="add-trigger" style="border-color:rgba(245,200,66,0.3);color:var(--gold)" onclick="savingAdding=true;renderSparande()">+ Nytt sparmål</button>`;
+  }
+
+  el.innerHTML = html;
+}
+
+function renderAddGoalForm() {
+  const emojiBtns = GOAL_EMOJIS.map((e,i) =>
+    `<button class="emoji-btn ${i===0?"selected":""}" onclick="selectEmoji(this,'${e}')">${e}</button>`
+  ).join("");
+  return `<div class="add-saving-form">
+    <div class="form-label">Välj emoji</div>
+    <div class="emoji-row" id="emoji-row">${emojiBtns}</div>
+    <div class="form-label">Namn på sparmålet</div>
+    <input class="add-input" id="goal-name" placeholder="t.ex. Sommarsemester" style="margin-bottom:10px;width:100%;" autocomplete="off"/>
+    <div class="form-label">Sparmål (kr)</div>
+    <input class="add-input" id="goal-target" type="number" inputmode="numeric" placeholder="20000" style="margin-bottom:14px;width:100%;"/>
+    <button class="add-submit" style="width:100%" onclick="submitGoal()">Skapa sparmål</button>
+  </div>`;
+}
+
+function selectEmoji(btn, emoji) {
+  document.querySelectorAll(".emoji-btn").forEach(b => b.classList.remove("selected"));
+  btn.classList.add("selected");
+  btn.dataset.emoji = emoji;
+}
+
+function submitGoal() {
+  const name = document.getElementById("goal-name")?.value.trim();
+  const target = parseFloat(document.getElementById("goal-target")?.value) || 0;
+  const selectedEmoji = document.querySelector(".emoji-btn.selected");
+  const emoji = selectedEmoji?.textContent || "💰";
+  if (!name || !target) return;
+  if (!data.sparande) data.sparande = [];
+  data.sparande.push({id:Date.now(), name, emoji, target, deposits:[]});
+  logActivity(`Skapade sparmål "${name}"`, "Sparande");
+  savingAdding = false;
+  saveData();
+  renderSparande();
+}
+
+function removeGoal(gi) {
+  const goal = data.sparande?.[gi];
+  if (!goal) return;
+  logActivity(`Tog bort sparmål "${goal.name}"`, "Sparande");
+  data.sparande.splice(gi, 1);
+  saveData();
+  renderSparande();
+}
+
+function openDeposit(gi) {
+  const goal = data.sparande?.[gi];
+  if (!goal) return;
+  const overlay = document.createElement("div");
+  overlay.className = "modal-overlay";
+  overlay.onclick = e => { if(e.target===overlay) overlay.remove(); };
+  overlay.innerHTML = `<div class="modal-box">
+    <div class="modal-handle"></div>
+    <div class="modal-title">${goal.emoji} ${goal.name} <button class="modal-close" onclick="this.closest('.modal-overlay').remove()">×</button></div>
+    <div class="modal-label">Belopp att sätta in (kr)</div>
+    <input class="add-input" id="dep-amount" type="number" inputmode="numeric" placeholder="0" style="width:100%;margin-bottom:16px;" autocomplete="off"/>
+    <button class="add-submit" style="width:100%" onclick="submitDeposit(${gi})">Sätt in</button>
+  </div>`;
+  document.body.appendChild(overlay);
+  setTimeout(() => document.getElementById("dep-amount")?.focus(), 100);
+}
+
+function submitDeposit(gi) {
+  const amt = parseFloat(document.getElementById("dep-amount")?.value) || 0;
+  if (!amt) return;
+  if (!data.sparande[gi].deposits) data.sparande[gi].deposits = [];
+  data.sparande[gi].deposits.push({who:profile, amount:amt, ts:Date.now()});
+  logActivity(`Satte in ${amt.toLocaleString("sv-SE")} kr i "${data.sparande[gi].name}"`, "Sparande");
+  document.querySelector(".modal-overlay")?.remove();
+  saveData();
+  renderSparande();
+}
+
+// ── Budget ─────────────────────────────────────────────────────
+function renderBudget() {
+  const el = document.getElementById("page-budget");
+  if (!data.budget) data.budget = {};
+  if (!data.budget[budgetYear]) data.budget[budgetYear] = {};
+  const bd = data.budget[budgetYear];
+  const totals = MONTHS_SHORT.map(m => bd[m]||0);
+  const yearTotal = totals.reduce((s,v)=>s+v,0);
+  const filledMonths = totals.filter(v=>v>0).length;
+  const avg = filledMonths > 0 ? Math.round(yearTotal/filledMonths) : 0;
+  const maxVal = Math.max(...totals, 1);
+
+  const years = [];
+  const curY = new Date().getFullYear();
+  for (let y=2026; y<=Math.max(curY,2026)+2; y++) years.push(y);
+
+  const allYearTotals = years.map(y => {
+    const ybd = data.budget[y] || {};
+    return MONTHS_SHORT.reduce((s,m)=>s+(ybd[m]||0),0);
+  });
+  const maxYearTotal = Math.max(...allYearTotals, 1);
+
+  let html = `<div class="page-header"><h2>📊 Budget</h2><p>Årsöversikt utgifter</p></div>`;
+
+  // Year nav
+  html += `<div class="budget-year-nav">
+    <button class="year-nav-btn" onclick="budgetYear=Math.max(2026,budgetYear-1);renderBudget()">‹</button>
+    <div class="year-label">${budgetYear}</div>
+    <button class="year-nav-btn" onclick="budgetYear++;renderBudget()">›</button>
+  </div>`;
+
+  // Summary
+  if (yearTotal > 0) {
+    html += `<div class="section-banner" style="background:var(--surface);border:1px solid var(--border);margin-bottom:16px">
+      <div>
+        <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-bottom:4px">Totalt ${budgetYear}</div>
+        <div style="font-size:24px;font-weight:600">${yearTotal.toLocaleString("sv-SE")} kr</div>
+      </div>
+      <div style="text-align:right">
+        <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-bottom:4px">Snitt/månad</div>
+        <div style="font-size:18px;font-weight:600">${avg.toLocaleString("sv-SE")} kr</div>
+        <div style="font-size:11px;color:var(--muted)">${filledMonths} månader ifyllda</div>
+      </div>
+    </div>`;
+  }
+
+  // Monthly chart
+  html += `<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px 12px 10px;margin-bottom:16px">
+    <div class="bar-chart">
+      ${MONTHS_SHORT.map((m,i) => {
+        const val = bd[m]||0;
+        const pct = val>0 ? Math.max(val/maxVal*100,4) : 3;
+        const isCur = i===new Date().getMonth() && budgetYear===new Date().getFullYear();
+        return `<div class="bar-col">
+          <div class="bar-fill" style="height:${pct}%;background:${isCur?"var(--text)":"rgba(255,255,255,0.2)"};opacity:${val>0?1:0.3}"></div>
+        </div>`;
+      }).join("")}
+    </div>
+    <div style="display:flex;gap:3px">
+      ${MONTHS_SHORT.map(m=>`<div class="bar-lbl" style="flex:1;text-align:center">${m}</div>`).join("")}
+    </div>
+  </div>`;
+
+  // Year comparison
+  if (years.some(y => allYearTotals[years.indexOf(y)] > 0)) {
+    html += `<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 12px 10px;margin-bottom:16px">
+      <div style="font-size:11px;font-weight:700;color:var(--muted);letter-spacing:.5px;text-transform:uppercase;margin-bottom:10px;text-align:center">Jämförelse per år</div>
+      <div class="bar-chart" style="height:60px">
+        ${years.map((y,i) => {
+          const val = allYearTotals[i];
+          const pct = val>0 ? Math.max(val/maxYearTotal*100,4) : 3;
+          const isSel = y===budgetYear;
+          return `<div class="bar-col" onclick="budgetYear=${y};renderBudget()" style="cursor:pointer">
+            <div class="bar-fill" style="height:${pct}%;background:${isSel?"var(--text)":"rgba(255,255,255,0.2)"};opacity:${val>0?1:0.3}"></div>
+          </div>`;
+        }).join("")}
+      </div>
+      <div style="display:flex;gap:3px">
+        ${years.map(y=>`<div class="bar-lbl" style="flex:1;text-align:center;color:${y===budgetYear?"var(--text)":"var(--muted)"};font-weight:${y===budgetYear?700:600}">${y}</div>`).join("")}
+      </div>
+    </div>`;
+  }
+
+  // Month inputs
+  html += MONTHS_SHORT.map((m,i) => {
+    const isCur = i===new Date().getMonth() && budgetYear===new Date().getFullYear();
+    return `<div class="month-row" style="${isCur?"border-color:rgba(255,255,255,0.2)":""}">
+      <div class="month-lbl" style="${isCur?"color:var(--text)":""}">${m}</div>
+      <input class="month-inp" type="number" inputmode="numeric" value="${bd[m]||""}" placeholder="0" onchange="updateBudget('${m}',this.value)"/>
+      <div class="month-unit">kr</div>
+    </div>`;
+  }).join("");
+
+  el.innerHTML = html;
+}
+
+function updateBudget(month, val) {
+  if (!data.budget) data.budget = {};
+  if (!data.budget[budgetYear]) data.budget[budgetYear] = {};
+  data.budget[budgetYear][month] = parseFloat(val)||0;
+  saveData();
+  renderBudget();
+}
+
+// ── Kalender ───────────────────────────────────────────────────
+function renderKalender() {
+  const el = document.getElementById("page-kalender");
+  const year  = data.kalYear  || new Date().getFullYear();
+  const month = data.kalMonth !== undefined ? data.kalMonth : new Date().getMonth();
+  const events = data.kalender || [];
+  const monthEvents = events.filter(e=>e.year===year&&e.month===month);
+  const today = new Date(); today.setHours(0,0,0,0);
+
+  // Next 30 days events
+  const in30 = new Date(today); in30.setDate(in30.getDate()+30);
+  const upcoming = events.filter(e => {
+    const d = new Date(e.year, e.month, e.day); d.setHours(0,0,0,0);
+    return d >= today && d <= in30;
+  }).sort((a,b)=>new Date(a.year,a.month,a.day)-new Date(b.year,b.month,b.day));
+
+  // Starred within next 30 days (shown first) + all other starred
+  const upcomingStarred = upcoming.filter(e=>e.starred);
+  const allStarred = events.filter(e=>e.starred).sort((a,b)=>new Date(a.year,a.month,a.day)-new Date(b.year,b.month,b.day));
+
+  let html = `<div class="page-header"><h2>📅 Kalender</h2><p>${monthEvents.length} händelser denna månad</p></div>`;
+
+  // Month nav
+  html += `<div class="cal-nav">
+    <button class="cal-nav-btn" onclick="kalNav(-1)">‹</button>
+    <div class="cal-month-lbl">${MONTHS_FULL[month]} ${year}</div>
+    <button class="cal-nav-btn" onclick="kalNav(1)">›</button>
+  </div>`;
+
+  // Grid
+  const firstDay = new Date(year,month,1).getDay();
+  const offset = firstDay===0?6:firstDay-1;
+  const daysInMonth = new Date(year,month+1,0).getDate();
+
+  let cells = "";
+  for(let i=0;i<offset;i++) cells+=`<div></div>`;
+  for(let d=1;d<=daysInMonth;d++){
+    const de=events.filter(e=>e.year===year&&e.month===month&&e.day===d);
+    const thisDate = new Date(year,month,d); thisDate.setHours(0,0,0,0);
+    const it=thisDate.getTime()===today.getTime();
+    const isUpcoming = thisDate>=today && thisDate<=in30 && de.length>0;
+    const hs=de.some(e=>e.starred);
+    const dots=de.slice(0,3).map(ev=>{const t=EVENT_TYPES.find(t=>t.key===ev.type)||EVENT_TYPES[3];return`<div class="cal-dot" style="background:${it?"var(--bg)":t.color}"></div>`;}).join("");
+    cells+=`<div class="cal-day ${it?"today":""} ${de.length>0&&!it?"has-events":""}" onclick="openDayModal(${d},${month},${year})" style="${isUpcoming&&!it?"box-shadow:0 0 0 1.5px rgba(255,255,255,0.15);background:var(--surface2)":""}">
+      ${hs?`<div class="cal-star">⭐</div>`:""}
+      <div class="cal-day-num">${d}</div>
+      ${dots?`<div class="cal-dots">${dots}</div>`:""}
+    </div>`;
+  }
+
+  html += `<div class="cal-grid-wrap">
+    <div class="cal-weekdays">${WEEKDAYS.map(d=>`<div class="cal-weekday">${d}</div>`).join("")}</div>
+    <div class="cal-days">${cells}</div>
+  </div>`;
+
+  // ── Närmaste 30 dagarna ──
+  if (upcoming.length > 0) {
+    html += `<div class="activity-title">🗓️ Närmaste 30 dagarna</div>`;
+    upcoming.forEach(ev => {
+      const t = EVENT_TYPES.find(t=>t.key===ev.type)||EVENT_TYPES[3];
+      const evDate = new Date(ev.year,ev.month,ev.day); evDate.setHours(0,0,0,0);
+      const diffDays = Math.round((evDate-today)/(1000*60*60*24));
+      const diffLabel = diffDays===0?"Idag 🔥":diffDays===1?"Imorgon":diffDays+" dagar kvar";
+      const whoColor = ev.who==="Albin"?"var(--albin)":"var(--evelina)";
+      const whoBg = ev.who==="Albin"?"rgba(79,127,255,0.12)":"rgba(255,107,157,0.12)";
+      html += `<div class="event-card" style="${ev.starred?"border-color:rgba(245,200,66,0.3)":""}">
+        <div class="event-icon-wrap" style="background:${t.color}20">${t.icon}</div>
+        <div class="event-info">
+          <div class="event-title">${ev.starred?"⭐ ":""}${ev.title}</div>
+          <div class="event-date" style="display:flex;align-items:center;gap:6px">
+            <span>${ev.day} ${MONTHS_FULL[ev.month]}</span>
+            <span style="padding:2px 7px;border-radius:10px;background:${t.color}20;color:${t.color};font-size:10px;font-weight:700">${diffLabel}</span>
+            ${ev.who?`<span style="width:14px;height:14px;border-radius:50%;background:${whoBg};color:${whoColor};display:inline-flex;align-items:center;justify-content:center;font-size:8px;font-weight:700">${ev.who[0]}</span>`:""}
+          </div>
+        </div>
+        <button onclick="toggleStar('${ev.id}')" style="font-size:16px;touch-action:manipulation;padding:4px">${ev.starred?"⭐":"☆"}</button>
+        <button onclick="removeEvent('${ev.id}')" style="color:var(--muted);font-size:18px;touch-action:manipulation;margin-left:2px">×</button>
+      </div>`;
+    });
+  } else {
+    html += `<div class="activity-title">🗓️ Närmaste 30 dagarna</div>
+    <div class="empty" style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px">Inga händelser de närmaste 30 dagarna</div>`;
+  }
+
+  // ── Viktiga händelser (alla stjärnmarkerade) ──
+  if (allStarred.length > 0) {
+    html += `<div class="activity-title" style="margin-top:8px">⭐ Alla viktiga händelser</div>`;
+    allStarred.forEach(ev => {
+      const t = EVENT_TYPES.find(t=>t.key===ev.type)||EVENT_TYPES[3];
+      const evDate = new Date(ev.year,ev.month,ev.day); evDate.setHours(0,0,0,0);
+      const isPast = evDate < today;
+      html += `<div class="event-card" style="opacity:${isPast?0.5:1};border-color:rgba(245,200,66,0.25)">
+        <div class="event-icon-wrap" style="background:${t.color}20">${t.icon}</div>
+        <div class="event-info">
+          <div class="event-title">${ev.title}</div>
+          <div class="event-date">${ev.day} ${MONTHS_FULL[ev.month]} ${ev.year}${isPast?" · Passerad":""}</div>
+        </div>
+        <div style="font-size:16px;color:var(--gold)">⭐</div>
+        <button onclick="removeEvent('${ev.id}')" style="color:var(--muted);font-size:18px;touch-action:manipulation;margin-left:6px">×</button>
+      </div>`;
+    });
+  }
+
+  el.innerHTML = html;
+}
+
+function kalNav(dir) {
+  let m = (data.kalMonth!==undefined?data.kalMonth:new Date().getMonth()) + dir;
+  let y = data.kalYear || new Date().getFullYear();
+  if (m<0){m=11;y--;} if(m>11){m=0;y++;}
+  data.kalMonth=m; data.kalYear=y;
+  saveData(); renderKalender();
+}
+
+function openDayModal(day,month,year) {
+  document.querySelector(".modal-overlay")?.remove();
+  const events = (data.kalender||[]).filter(e=>e.year===year&&e.month===month&&e.day===day);
+  let selectedType = "other";
+  let isStarred = false;
+
+  const overlay = document.createElement("div");
+  overlay.className = "modal-overlay";
+  overlay.onclick = e => { if(e.target===overlay) overlay.remove(); };
+
+  const typeChips = EVENT_TYPES.map(t=>
+    `<button class="type-chip ${t.key==="other"?"active":""}" onclick="selectType(this,'${t.key}')" style="color:${t.color}">${t.icon} ${t.label}</button>`
+  ).join("");
+
+  const existingHtml = events.map(ev=>{
+    const t=EVENT_TYPES.find(t=>t.key===ev.type)||EVENT_TYPES[3];
+    return `<div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:${t.color}15;border-radius:10px;margin-bottom:8px">
+      <span style="font-size:18px">${t.icon}</span>
+      <span style="flex:1;font-size:14px;font-weight:500">${ev.title}</span>
+      <button onclick="toggleStar('${ev.id}');this.closest('.modal-overlay').remove();openDayModal(${day},${month},${year})" style="font-size:16px;touch-action:manipulation">${ev.starred?"⭐":"☆"}</button>
+      <button onclick="removeEvent('${ev.id}');this.closest('.modal-overlay').remove();openDayModal(${day},${month},${year})" style="color:var(--muted);font-size:18px;touch-action:manipulation">×</button>
+    </div>`;
+  }).join("");
+
+  overlay.innerHTML = `<div class="modal-box">
+    <div class="modal-handle"></div>
+    <div class="modal-title">${day} ${MONTHS_FULL[month]} ${year} <button class="modal-close" onclick="this.closest('.modal-overlay').remove()">×</button></div>
+    ${existingHtml}
+    <div class="modal-label">Lägg till händelse</div>
+    <input class="add-input" id="ev-title" placeholder="Händelsens namn..." style="width:100%;margin-bottom:12px" autocomplete="off"/>
+    <div class="modal-label">Typ</div>
+    <div class="type-row" id="type-row">${typeChips}</div>
+    <div class="modal-label">Markera som viktig</div>
+    <button class="star-toggle" id="star-toggle" onclick="toggleStarBtn(this)">☆ Markera som viktig</button>
+    <button class="add-submit" style="width:100%;margin-top:14px" onclick="submitEvent(${day},${month},${year})">Lägg till</button>
+  </div>`;
+
+  document.body.appendChild(overlay);
+  setTimeout(()=>document.getElementById("ev-title")?.focus(),100);
+}
+
+function selectType(btn, type) {
+  document.querySelectorAll(".type-chip").forEach(b=>b.classList.remove("active"));
+  btn.classList.add("active");
+  btn.dataset.type = type;
+  window._selectedEvType = type;
+}
+window._selectedEvType = "other";
+window._evStarred = false;
+
+function toggleStarBtn(btn) {
+  window._evStarred = !window._evStarred;
+  btn.classList.toggle("on", window._evStarred);
+  btn.textContent = window._evStarred ? "⭐ Viktig markerad" : "☆ Markera som viktig";
+}
+
+function submitEvent(day,month,year) {
+  const title = document.getElementById("ev-title")?.value.trim();
+  if (!title) return;
+  if (!data.kalender) data.kalender = [];
+  data.kalender.push({id:String(Date.now()), title, type:window._selectedEvType||"other", starred:window._evStarred||false, day, month, year, who:profile});
+  logActivity(`Lade till "${title}" i kalendern`, "Kalender");
+  window._selectedEvType="other"; window._evStarred=false;
+  document.querySelector(".modal-overlay")?.remove();
+  saveData(); renderKalender();
+}
+
+function toggleStar(id) {
+  const ev = (data.kalender||[]).find(e=>e.id===id);
+  if (ev) { ev.starred=!ev.starred; saveData(); renderKalender(); }
+}
+
+function removeEvent(id) {
+  data.kalender=(data.kalender||[]).filter(e=>e.id!==id);
+  saveData(); renderKalender();
+}
+
+// ── Init ───────────────────────────────────────────────────────
+try {
+  const savedRoom = localStorage.getItem("vh-room");
+  const savedProfile = localStorage.getItem("vh-profile");
+  if (savedRoom) {
+    document.getElementById("room-input").value = savedRoom;
+    doSetup().then(() => {
+      if (savedProfile) {
+        profile = savedProfile;
+        showMain();
+      }
+    });
+  } else {
+    showScreen("setup-screen");
+  }
+} catch {
+  showScreen("setup-screen");
+}
+</script>
+</body>
+</html>
